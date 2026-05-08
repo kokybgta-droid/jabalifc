@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jabalí FC</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1a7a3c;
+  --green-dark: #0f5228;
+  --green-light: #e8f5ed;
+  --green-mid: #2d9e54;
+  --gold: #c9a84c;
+  --gold-light: #f5edda;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --blue: #1a5fa8;
+  --blue-light: #e8f0fb;
+  --purple: #6c3fcf;
+  --purple-light: #f0ebff;
+  --bg: #f4f6f3;
+  --bg2: #ffffff;
+  --text: #1a1f1c;
+  --text2: #4a5549;
+  --text3: #8a9988;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --radius: 10px;
+  --radius-lg: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* LOGIN */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--green-dark); padding: 1rem;
+}
+.login-box {
+  background: var(--bg2); border-radius: var(--radius-lg); padding: 2.5rem 2rem;
+  width: 100%; max-width: 380px; text-align: center;
+}
+.login-crest {
+  width: 80px; height: 80px; border-radius: 50%; background: var(--green-dark);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem; font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; color: var(--gold); letter-spacing: 1px; border: 3px solid var(--gold);
+}
+.login-box h1 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 2px; color: var(--green-dark); margin-bottom: 4px; }
+.login-box p { font-size: 13px; color: var(--text3); margin-bottom: 1.5rem; }
+.login-tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+.login-tab {
+  flex: 1; padding: 8px; border-radius: var(--radius); border: 1px solid var(--border2);
+  background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  cursor: pointer; color: var(--text2); transition: all 0.15s;
+}
+.login-tab.active { background: var(--green-dark); color: white; border-color: var(--green-dark); font-weight: 500; }
+.login-field { margin-bottom: 12px; text-align: left; }
+.login-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+.login-field input, .login-field select {
+  width: 100%; padding: 10px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border2); font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--bg); color: var(--text);
+}
+.btn-login {
+  width: 100%; padding: 12px; border-radius: var(--radius); border: none;
+  background: var(--green-dark); color: white; font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 2px; cursor: pointer; margin-top: 4px;
+  transition: background 0.15s;
+}
+.btn-login:hover { background: var(--green); }
+.login-error { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 16px; }
+
+/* APP */
+#app { display: none; min-height: 100vh; }
+.topbar {
+  background: var(--green-dark); color: white; padding: 0 1.5rem;
+  display: flex; align-items: center; gap: 1rem; height: 56px; position: sticky; top: 0; z-index: 100;
+  border-bottom: 2px solid var(--gold);
+}
+.topbar-crest {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--gold);
+  letter-spacing: 1px; white-space: nowrap;
+}
+.topbar-crest span { font-size: 13px; color: rgba(255,255,255,0.5); margin-left: 4px; font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0; }
+.topbar-user {
+  margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px;
+}
+.user-badge {
+  padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500;
+  background: var(--gold); color: var(--green-dark);
+}
+.user-badge.player { background: rgba(255,255,255,0.15); color: white; }
+.btn-logout {
+  padding: 5px 10px; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.2);
+  background: transparent; color: rgba(255,255,255,0.7); font-size: 12px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.1); color: white; }
+
+.nav {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: flex; padding: 0 1rem; overflow-x: auto; gap: 0;
+}
+.nav-btn {
+  padding: 12px 16px; border: none; background: transparent; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.nav-btn.active { color: var(--green-dark); border-bottom-color: var(--green-dark); }
+.nav-btn svg { vertical-align: -3px; margin-right: 5px; }
+
+.main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+.section { display: none; }
+.section.active { display: block; }
+
+/* CARDS */
+.card {
+  background: var(--bg2); border-radius: var(--radius-lg); border: 1px solid var(--border);
+  padding: 1.25rem; margin-bottom: 1rem;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap: 8px;
+}
+.card-header h2 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+/* BUTTONS */
+.btn {
+  padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border2);
+  background: transparent; color: var(--text); font-size: 13px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.15s; font-weight: 500;
+}
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--green-dark); color: white; border-color: var(--green-dark); }
+.btn-primary:hover { background: var(--green); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger { color: var(--red); border-color: rgba(192,57,43,0.3); }
+.btn-danger:hover { background: var(--red-light); }
+.btn-gold { background: var(--gold); color: var(--green-dark); border-color: var(--gold); font-weight: 600; }
+
+/* PLAYERS GRID */
+.player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.player-card {
+  background: var(--bg); border-radius: var(--radius-lg); border: 1px solid var(--border);
+  padding: 1rem; position: relative; transition: border-color 0.15s;
+}
+.player-card:hover { border-color: var(--green-mid); }
+.player-card.active-player { border-color: var(--green-mid); border-width: 2px; }
+.player-avatar {
+  width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 15px; font-weight: 600; color: white; flex-shrink: 0;
+  overflow: hidden; border: 2px solid white;
+}
+.player-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.player-name { font-size: 14px; font-weight: 600; margin-top: 8px; }
+.player-nick { font-size: 12px; color: var(--text3); }
+.player-email { font-size: 11px; color: var(--text3); margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pos-badge {
+  display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; margin-top: 6px;
+}
+.pos-gk { background: #fef3d0; color: #8a6200; }
+.pos-def { background: var(--blue-light); color: var(--blue); }
+.pos-mid { background: var(--purple-light); color: var(--purple); }
+.pos-fwd { background: var(--red-light); color: var(--red); }
+.active-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--green-mid);
+  display: inline-block; margin-right: 4px;
+}
+.admin-badge-small {
+  font-size: 10px; padding: 1px 6px; border-radius: 99px;
+  background: var(--gold-light); color: var(--green-dark); font-weight: 600; margin-top: 4px; display: inline-block;
+}
+.player-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+
+/* PAYMENTS */
+.payment-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg);
+  margin-bottom: 8px; flex-wrap: wrap;
+}
+.pay-avatar {
+  width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 600; color: white; flex-shrink: 0; overflow: hidden;
+}
+.pay-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.pay-info { flex: 1; min-width: 0; }
+.pay-name { font-size: 13px; font-weight: 600; }
+.pay-date { font-size: 11px; color: var(--text3); }
+.pay-amount { font-size: 14px; font-weight: 700; color: var(--green-dark); flex-shrink: 0; }
+.proof-btn {
+  font-size: 11px; padding: 3px 10px; border-radius: var(--radius); background: var(--green-light);
+  color: var(--green-dark); border: 1px solid rgba(26,122,60,0.25); cursor: pointer; font-weight: 500; white-space: nowrap;
+}
+.no-proof { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.25rem; }
+.stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
+.stat-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.stat-val { font-size: 26px; font-family: 'Bebas Neue', sans-serif; color: var(--green-dark); letter-spacing: 1px; }
+
+/* FIELD */
+.field-layout { display: grid; grid-template-columns: 1fr 200px; gap: 14px; align-items: start; }
+.field-outer {
+  background: #1a5228; border-radius: 14px; padding: 10px;
+  border: 2px solid #0d3319;
+}
+.field-inner {
+  position: relative; width: 100%; aspect-ratio: 0.65;
+  background: #1e6b30; border-radius: 6px; overflow: hidden;
+}
+.field-inner svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.tokens-wrap { position: absolute; inset: 0; }
+.player-token {
+  position: absolute; transform: translate(-50%,-50%);
+  cursor: grab; user-select: none; text-align: center; z-index: 10;
+}
+.player-token:active { cursor: grabbing; z-index: 20; }
+.token-circle {
+  width: 42px; height: 42px; border-radius: 50%; border: 2px solid white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white; overflow: hidden; margin: 0 auto;
+}
+.token-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.token-label {
+  font-size: 10px; color: white; margin-top: 2px; font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9); white-space: nowrap; max-width: 60px;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.bench-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+.bench-section-label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin: 8px 0 4px; }
+.bench-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg);
+  margin-bottom: 5px; cursor: default;
+}
+.bench-item.is-active { border-color: var(--green-mid); background: var(--green-light); cursor: grab; }
+.bench-item.is-active:active { cursor: grabbing; }
+.bench-avatar {
+  width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; overflow: hidden;
+}
+.bench-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bench-name { font-size: 12px; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bench-toggle {
+  width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border2);
+  background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 14px; color: var(--text3); line-height: 1;
+}
+.bench-toggle.on { background: var(--green-mid); border-color: var(--green-mid); color: white; }
+
+/* MODAL */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 1000; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg2); border-radius: var(--radius-lg); padding: 1.5rem;
+  width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
+}
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 1.25rem; }
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 9px 11px; border-radius: var(--radius);
+  border: 1px solid var(--border2); font-family: 'DM Sans', sans-serif; font-size: 13px;
+  background: var(--bg); color: var(--text);
+}
+.form-group textarea { min-height: 60px; resize: vertical; }
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+.pos-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.pos-opt {
+  padding: 8px; border-radius: var(--radius); border: 1px solid var(--border2);
+  background: var(--bg); cursor: pointer; text-align: center; font-size: 12px; font-weight: 500;
+  transition: all 0.15s;
+}
+.pos-opt.selected { border-color: var(--green-dark); background: var(--green-light); color: var(--green-dark); }
+
+/* PROOF VIEWER */
+.proof-viewer {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  z-index: 2000; align-items: center; justify-content: center; padding: 1rem;
+}
+.proof-viewer.open { display: flex; }
+.proof-viewer img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+.proof-close {
+  position: absolute; top: 16px; right: 16px; width: 36px; height: 36px;
+  background: white; border: none; border-radius: 50%; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: var(--green-dark); color: white; padding: 10px 20px;
+  border-radius: var(--radius); font-size: 13px; z-index: 3000;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s; white-space: nowrap;
+  border-top: 2px solid var(--gold);
+}
+.toast.show { opacity: 1; }
+
+/* FILTER BAR */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.filter-bar input, .filter-bar select {
+  padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--bg2); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text);
+}
+.filter-bar input { flex: 1; min-width: 140px; }
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 13px; }
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .field-layout { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .player-grid { grid-template-columns: 1fr 1fr; }
+  .topbar { padding: 0 1rem; }
+  .topbar-crest span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-crest">JFC</div>
+    <h1>Jabalí FC</h1>
+    <p>Fútbol de semana · Miércoles y Jueves</p>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('admin')" id="ltab-admin">⚙ Administrador</button>
+      <button class="login-tab" onclick="switchLoginTab('player')" id="ltab-player">⚽ Jugador</button>
+    </div>
+    <div id="login-admin-form">
+      <div class="login-field">
+        <label>Clave de administrador</label>
+        <input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+    </div>
+    <div id="login-player-form" style="display:none">
+      <div class="login-field">
+        <label>Tu nombre de jugador</label>
+        <select id="player-select"><option value="">Seleccionar...</option></select>
+      </div>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="player-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+    </div>
+    <p class="login-error" id="login-error"></p>
+    <button class="btn-login" onclick="doLogin()">ENTRAR</button>
+    <p style="font-size:11px;color:#aaa;margin-top:12px">Admin por defecto: <b>jabali2025</b></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-crest">JABALÍ FC <span>⚽ Fútbol semanal</span></div>
+    <div class="topbar-user">
+      <span id="topbar-username" style="font-size:13px;color:rgba(255,255,255,0.8)"></span>
+      <span class="user-badge" id="topbar-role-badge">Admin</span>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn active" onclick="showSection('s-players')" id="nb-players">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+      Jugadores
+    </button>
+    <button class="nav-btn" onclick="showSection('s-payments')" id="nb-payments">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      Pagos
+    </button>
+    <button class="nav-btn" onclick="showSection('s-field')" id="nb-field">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg>
+      Alineación
+    </button>
+    <button class="nav-btn" id="nb-admin" onclick="showSection('s-admin')" style="display:none">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Configuración
+    </button>
+  </div>
+
+  <div class="main">
+
+    <!-- JUGADORES -->
+    <div class="section active" id="s-players">
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+            Fichas de jugadores
+          </h2>
+          <button class="btn btn-primary admin-only" onclick="openPlayerModal()">+ Agregar jugador</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="search-p" placeholder="Buscar jugador..." oninput="renderPlayers()">
+          <select id="filter-pos" onchange="renderPlayers()">
+            <option value="">Todas las posiciones</option>
+            <option>Portero</option><option>Defensa</option><option>Mediocampista</option><option>Delantero</option>
+          </select>
+        </div>
+        <div class="player-grid" id="player-grid"></div>
+      </div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="section" id="s-payments">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-label">Total pagos</div><div class="stat-val" id="st-total">0</div></div>
+        <div class="stat-box"><div class="stat-label">Recaudado</div><div class="stat-val" id="st-amount">$0</div></div>
+        <div class="stat-box"><div class="stat-label">Jugadores</div><div class="stat-val" id="st-unique">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            Historial de pagos
+          </h2>
+          <button class="btn btn-primary admin-only" onclick="openPaymentModal()">+ Registrar pago</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="search-pay" placeholder="Buscar jugador..." oninput="renderPayments()">
+          <select id="filter-pay-player" onchange="renderPayments()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div id="payments-list"></div>
+      </div>
+    </div>
+
+    <!-- ALINEACION -->
+    <div class="section" id="s-field">
+      <div class="card" style="padding:1rem">
+        <div class="card-header">
+          <h2>
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+            Alineación táctica
+            <span id="active-badge" style="font-size:11px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green-dark);font-weight:600">0 activos</span>
+          </h2>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+              <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#c0392b;border:2px solid #c0392b"></span>Equipo Rojo
+              <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#1a1a1a;border:2px solid #1a1a1a;margin-left:6px"></span>Equipo Negro
+            </div>
+            <button class="btn btn-sm admin-only" onclick="resetPositions()">↺ Resetear</button>
+            <button class="btn btn-sm btn-primary admin-only" onclick="saveFieldLayout()">💾 Guardar</button>
+          </div>
+        </div>
+        <div class="field-layout">
+          <div class="field-outer">
+            <div class="field-inner" id="field">
+              <svg viewBox="0 0 300 460" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <rect x="0" y="0" width="300" height="460" fill="#1e6b30"/>
+                <rect x="14" y="14" width="272" height="432" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+                <line x1="14" y1="230" x2="286" y2="230" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="150" cy="230" r="36" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="150" cy="230" r="2.5" fill="rgba(255,255,255,0.6)"/>
+                <rect x="85" y="14" width="130" height="56" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <rect x="110" y="14" width="80" height="26" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <rect x="85" y="390" width="130" height="56" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <rect x="110" y="420" width="80" height="26" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="150" cy="68" r="2" fill="rgba(255,255,255,0.5)"/>
+                <circle cx="150" cy="392" r="2" fill="rgba(255,255,255,0.5)"/>
+                <path d="M110 14 Q150 38 190 14" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                <path d="M110 446 Q150 422 190 446" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+              </svg>
+              <div class="tokens-wrap" id="tokens-wrap"></div>
+              <div id="field-drop" style="position:absolute;inset:0;z-index:5"></div>
+            </div>
+            <p style="text-align:center;font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px">Arrastra jugadores al campo</p>
+          </div>
+          <div>
+            <div class="bench-panel">
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+                Plantel
+              </div>
+              <div class="bench-section-label">En cancha</div>
+              <div id="bench-active"></div>
+              <div class="bench-section-label" style="margin-top:10px">Banca</div>
+              <div id="bench-inactive"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+              <button class="btn btn-sm admin-only" onclick="activateAll()">✓ Todos activos</button>
+              <button class="btn btn-sm admin-only" onclick="deactivateAll()">✕ Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN CONFIG -->
+    <div class="section" id="s-admin">
+      <div class="card">
+        <div class="card-header">
+          <h2>⚙ Configuración</h2>
+        </div>
+        <div style="display:grid;gap:12px">
+          <div class="form-group">
+            <label>Cambiar clave de administrador</label>
+            <div style="display:flex;gap:8px">
+              <input type="password" id="new-admin-pass" placeholder="Nueva clave" style="flex:1">
+              <button class="btn btn-primary" onclick="changeAdminPass()">Guardar</button>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px">
+            <p style="font-size:13px;font-weight:600;margin-bottom:8px">Permisos: los jugadores pueden</p>
+            <ul style="font-size:13px;color:var(--text2);line-height:2;padding-left:1.25rem">
+              <li>Ver fichas de jugadores</li>
+              <li>Ver historial de pagos completo</li>
+              <li>Ver la alineación táctica</li>
+            </ul>
+            <p style="font-size:12px;color:var(--text3);margin-top:8px">Solo los administradores pueden agregar, editar o eliminar datos.</p>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px">
+            <p style="font-size:13px;font-weight:600;margin-bottom:8px">⚠ Zona de peligro</p>
+            <button class="btn btn-danger" onclick="clearAllData()">🗑 Borrar todos los datos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL JUGADOR -->
+<div class="modal-backdrop" id="modal-player">
+  <div class="modal">
+    <h3 id="modal-player-title">Agregar jugador</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre completo *</label><input type="text" id="inp-name" placeholder="Carlos Ramírez"></div>
+      <div class="form-group"><label>Apodo</label><input type="text" id="inp-nick" placeholder="Carlitos"></div>
+    </div>
+    <div class="form-group"><label>Correo electrónico</label><input type="email" id="inp-email" placeholder="carlos@email.com"></div>
+    <div class="form-group">
+      <label>Posición *</label>
+      <div class="pos-selector">
+        <div class="pos-opt" onclick="selPos('Portero',this)">🧤 Portero</div>
+        <div class="pos-opt" onclick="selPos('Defensa',this)">🛡 Defensa</div>
+        <div class="pos-opt" onclick="selPos('Mediocampista',this)">⚡ Mediocampista</div>
+        <div class="pos-opt" onclick="selPos('Delantero',this)">⚽ Delantero</div>
+      </div>
+      <input type="hidden" id="inp-pos">
+    </div>
+    <div class="form-group">
+      <label>Foto del jugador (opcional)</label>
+      <input type="file" id="inp-photo" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label>Rol</label>
+      <select id="inp-role">
+        <option value="player">Jugador</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="form-group" id="pass-group">
+      <label>Contraseña del jugador (para iniciar sesión)</label>
+      <input type="password" id="inp-player-pass" placeholder="Mínimo 4 caracteres">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-player')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePlayer()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div class="modal-backdrop" id="modal-payment">
+  <div class="modal">
+    <h3>Registrar pago</h3>
+    <div class="form-group"><label>Jugador *</label><select id="inp-pay-player"><option value="">Seleccionar...</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha del partido *</label><input type="date" id="inp-pay-date"></div>
+      <div class="form-group"><label>Monto (CLP) *</label><input type="number" id="inp-pay-amount" value="2500" min="2500" step="500"></div>
+    </div>
+    <div class="form-group"><label>Comprobante de pago</label><input type="file" id="inp-pay-proof" accept="image/*,.pdf"></div>
+    <div class="form-group"><label>Nota</label><input type="text" id="inp-pay-note" placeholder="Ej: Miércoles 7 mayo"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-payment')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePayment()">✓ Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROOF VIEWER -->
+<div class="proof-viewer" id="proof-viewer" onclick="this.classList.remove('open')">
+  <button class="proof-close" onclick="document.getElementById('proof-viewer').classList.remove('open')">✕</button>
+  <img id="proof-img" src="" alt="Comprobante">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- STATE ----
+let players = [];
+let payments = [];
+let fieldLayout = {};
+let activeIds = new Set();
+let playerTeams = {};
+let adminPass = 'jabali2025';
+let currentUser = null; // {role:'admin'|'player', playerId, name}
+let editingPlayerId = null;
+let draggingId = null;
+let loginTab = 'admin';
+
+const POS_COLORS = { 'Portero':'#b07a00','Defensa':'#1a5fa8','Mediocampista':'#6c3fcf','Delantero':'#c0392b' };
+
+// ---- STORAGE ----
+function saveAll() {
+  localStorage.setItem('jabali_players', JSON.stringify(players));
+  localStorage.setItem('jabali_payments', JSON.stringify(payments));
+  localStorage.setItem('jabali_layout', JSON.stringify(fieldLayout));
+  localStorage.setItem('jabali_active', JSON.stringify([...activeIds]));
+  localStorage.setItem('jabali_teams', JSON.stringify(playerTeams));
+  localStorage.setItem('jabali_adminpass', adminPass);
+}
+function loadAll() {
+  try { players = JSON.parse(localStorage.getItem('jabali_players')) || []; } catch(e) { players=[]; }
+  try { payments = JSON.parse(localStorage.getItem('jabali_payments')) || []; } catch(e) { payments=[]; }
+  try { fieldLayout = JSON.parse(localStorage.getItem('jabali_layout')) || {}; } catch(e) { fieldLayout={}; }
+  try { activeIds = new Set(JSON.parse(localStorage.getItem('jabali_active')) || []); } catch(e) { activeIds=new Set(); }
+  try { playerTeams = JSON.parse(localStorage.getItem('jabali_teams')) || {}; } catch(e) { playerTeams={}; }
+  const ap = localStorage.getItem('jabali_adminpass');
+  if (ap) adminPass = ap;
+}
+
+// ---- LOGIN ----
+function switchLoginTab(tab) {
+  loginTab = tab;
+  document.getElementById('ltab-admin').classList.toggle('active', tab==='admin');
+  document.getElementById('ltab-player').classList.toggle('active', tab==='player');
+  document.getElementById('login-admin-form').style.display = tab==='admin' ? 'block' : 'none';
+  document.getElementById('login-player-form').style.display = tab==='player' ? 'block' : 'none';
+  if (tab==='player') populatePlayerSelect();
+  document.getElementById('login-error').textContent = '';
+}
+function populatePlayerSelect() {
+  const sel = document.getElementById('player-select');
+  sel.innerHTML = '<option value="">Seleccionar...</option>';
+  players.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}${p.nick?' ('+p.nick+')':''}</option>`);
+}
+function doLogin() {
+  const err = document.getElementById('login-error');
+  if (loginTab === 'admin') {
+    const pass = document.getElementById('admin-pass').value;
+    if (pass === adminPass) {
+      currentUser = { role: 'admin', name: 'Administrador' };
+      startApp();
+    } else {
+      err.textContent = 'Clave incorrecta';
+    }
+  } else {
+    const pid = document.getElementById('player-select').value;
+    const pass = document.getElementById('player-pass').value;
+    if (!pid) { err.textContent = 'Selecciona tu nombre'; return; }
+    const player = players.find(p => p.id === pid);
+    if (!player) { err.textContent = 'Jugador no encontrado'; return; }
+    if (!player.password) { err.textContent = 'Este jugador no tiene contraseña asignada. Pide al admin que la configure.'; return; }
+    if (player.password !== pass) { err.textContent = 'Contraseña incorrecta'; return; }
+    currentUser = { role: player.role || 'player', playerId: pid, name: player.name };
+    startApp();
+  }
+}
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const isAdmin = currentUser.role === 'admin';
+  document.getElementById('topbar-username').textContent = currentUser.name;
+  document.getElementById('topbar-role-badge').textContent = isAdmin ? '⚙ Admin' : '⚽ Jugador';
+  document.getElementById('topbar-role-badge').className = 'user-badge' + (isAdmin ? '' : ' player');
+  document.getElementById('nb-admin').style.display = isAdmin ? 'block' : 'none';
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+  renderPlayers(); renderPayments(); renderField();
+}
+function logout() {
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('admin-pass').value = '';
+  document.getElementById('player-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+// ---- NAV ----
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const nb = id.replace('s-','nb-');
+  if (document.getElementById(nb)) document.getElementById(nb).classList.add('active');
+}
+
+// ---- HELPERS ----
+function getInitials(n) { return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function uid() { return 'id' + Date.now() + Math.random().toString(36).slice(2,6); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ---- PLAYERS ----
+function renderPlayers() {
+  const grid = document.getElementById('player-grid');
+  const q = (document.getElementById('search-p').value||'').toLowerCase();
+  const fp = document.getElementById('filter-pos').value;
+  let list = players.filter(p => (p.name+p.nick+p.email).toLowerCase().includes(q) && (!fp||p.position===fp));
+  const isAdmin = currentUser && currentUser.role==='admin';
+  if (!list.length) { grid.innerHTML = '<div class="empty-state">No hay jugadores registrados</div>'; return; }
+  grid.innerHTML = list.map(p => {
+    const color = POS_COLORS[p.position]||'#1a7a3c';
+    const avatar = p.photo ? `<img src="${p.photo}" alt="${p.name}">` : getInitials(p.name);
+    const avatarBg = p.photo ? '' : `background:${color}`;
+    const posCls = {Portero:'pos-gk',Defensa:'pos-def',Mediocampista:'pos-mid',Delantero:'pos-fwd'}[p.position]||'';
+    const isActive = activeIds.has(p.id);
+    const actions = isAdmin ? `<div class="player-actions">
+      <button class="btn btn-sm" onclick="editPlayer('${p.id}')">✏</button>
+      <button class="btn btn-sm btn-danger" onclick="deletePlayer('${p.id}')">🗑</button>
+    </div>` : '';
+    return `<div class="player-card${isActive?' active-player':''}">
+      ${actions}
+      <div class="player-avatar" style="${avatarBg}">${avatar}</div>
+      <div class="player-name">${p.name}</div>
+      ${p.nick ? `<div class="player-nick">"${p.nick}"</div>` : ''}
+      ${p.email ? `<div class="player-email">✉ ${p.email}</div>` : ''}
+      <span class="pos-badge ${posCls}">${p.position}</span>
+      ${p.role==='admin' ? '<span class="admin-badge-small">⚙ Admin</span>' : ''}
+      ${isActive ? '<div style="margin-top:6px;font-size:11px;color:var(--green-dark);font-weight:500"><span class="active-dot"></span>Activo</div>' : ''}
+      <div style="margin-top:4px;font-size:11px;color:var(--text3)">${payments.filter(pay=>pay.playerId===p.id).length} pago(s)</div>
+    </div>`;
+  }).join('');
+}
+function openPlayerModal(id) {
+  editingPlayerId = id || null;
+  document.getElementById('modal-player-title').textContent = id ? 'Editar jugador' : 'Agregar jugador';
+  if (id) {
+    const p = players.find(x=>x.id===id);
+    document.getElementById('inp-name').value = p.name;
+    document.getElementById('inp-nick').value = p.nick||'';
+    document.getElementById('inp-email').value = p.email||'';
+    document.getElementById('inp-pos').value = p.position;
+    document.getElementById('inp-role').value = p.role||'player';
+    document.getElementById('inp-player-pass').value = '';
+    document.querySelectorAll('.pos-opt').forEach(el => el.classList.toggle('selected', el.textContent.includes(p.position)));
+  } else {
+    ['inp-name','inp-nick','inp-email','inp-player-pass'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('inp-pos').value='';
+    document.getElementById('inp-role').value='player';
+    document.querySelectorAll('.pos-opt').forEach(el=>el.classList.remove('selected'));
+  }
+  document.getElementById('modal-player').classList.add('open');
+}
+function editPlayer(id) { openPlayerModal(id); }
+function selPos(pos, el) {
+  document.querySelectorAll('.pos-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('inp-pos').value = pos;
+}
+async function savePlayer() {
+  const name = document.getElementById('inp-name').value.trim();
+  const pos = document.getElementById('inp-pos').value;
+  if (!name||!pos) { toast('Completa nombre y posición'); return; }
+  const file = document.getElementById('inp-photo').files[0];
+  let photo = editingPlayerId ? (players.find(p=>p.id===editingPlayerId)||{}).photo : null;
+  if (file) {
+    photo = await new Promise(res => { const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); });
+  }
+  const passVal = document.getElementById('inp-player-pass').value;
+  const role = document.getElementById('inp-role').value;
+  if (editingPlayerId) {
+    const idx = players.findIndex(p=>p.id===editingPlayerId);
+    players[idx] = { ...players[idx], name, nick:document.getElementById('inp-nick').value.trim(),
+      email:document.getElementById('inp-email').value.trim(), position:pos, role,
+      ...(photo !== undefined ? {photo} : {}),
+      ...(passVal ? {password:passVal} : {}) };
+  } else {
+    if (!passVal) { toast('Asigna una contraseña al jugador'); return; }
+    players.push({ id:uid(), name, nick:document.getElementById('inp-nick').value.trim(),
+      email:document.getElementById('inp-email').value.trim(), position:pos, photo, role, password:passVal });
+  }
+  saveAll(); closeModal('modal-player'); renderPlayers(); updatePlayerSelects();
+  toast(editingPlayerId ? 'Jugador actualizado' : 'Jugador agregado');
+}
+function deletePlayer(id) {
+  if (!confirm('¿Eliminar este jugador?')) return;
+  players = players.filter(p=>p.id!==id);
+  activeIds.delete(id); delete fieldLayout[id];
+  saveAll(); renderPlayers(); renderField(); updatePlayerSelects(); toast('Jugador eliminado');
+}
+
+// ---- PAYMENTS ----
+function updatePlayerSelects() {
+  const opts = players.map(p=>`<option value="${p.id}">${p.name}${p.nick?' ('+p.nick+')':''}</option>`).join('');
+  document.getElementById('inp-pay-player').innerHTML = '<option value="">Seleccionar...</option>' + opts;
+  document.getElementById('filter-pay-player').innerHTML = '<option value="">Todos</option>' + opts;
+  populatePlayerSelect();
+}
+function renderPayments() {
+  const list = document.getElementById('payments-list');
+  const q = (document.getElementById('search-pay').value||'').toLowerCase();
+  const fp = document.getElementById('filter-pay-player').value;
+  const isAdmin = currentUser && currentUser.role==='admin';
+  let sorted = [...payments].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let filtered = sorted.filter(pay => {
+    const pl = players.find(p=>p.id===pay.playerId);
+    const nm = pl ? (pl.name+(pl.nick||'')).toLowerCase() : '';
+    return nm.includes(q) && (!fp||pay.playerId===fp);
+  });
+  const total = filtered.reduce((s,p)=>s+(p.amount||2500),0);
+  document.getElementById('st-total').textContent = filtered.length;
+  document.getElementById('st-amount').textContent = '$'+total.toLocaleString('es-CL');
+  document.getElementById('st-unique').textContent = new Set(filtered.map(p=>p.playerId)).size;
+  if (!filtered.length) { list.innerHTML='<div class="empty-state">No hay pagos registrados</div>'; return; }
+  list.innerHTML = filtered.map(pay => {
+    const pl = players.find(p=>p.id===pay.playerId);
+    const nm = pl ? pl.name : 'Jugador eliminado';
+    const color = pl ? (POS_COLORS[pl.position]||'#1a7a3c') : '#888';
+    const avatar = pl && pl.photo ? `<img src="${pl.photo}" alt="${nm}">` : getInitials(nm);
+    const avatarBg = pl && pl.photo ? '' : `background:${color}`;
+    const dateStr = pay.date ? new Date(pay.date+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) : '';
+    const proofHtml = pay.proof
+      ? `<span class="proof-btn" onclick="showProof('${pay.id}')">📎 Ver comprobante</span>`
+      : `<span class="no-proof">Sin comprobante</span>`;
+    const del = isAdmin ? `<button class="btn btn-sm btn-danger" onclick="deletePayment('${pay.id}')">🗑</button>` : '';
+    return `<div class="payment-row">
+      <div class="pay-avatar" style="${avatarBg}">${avatar}</div>
+      <div class="pay-info"><div class="pay-name">${nm}</div><div class="pay-date">${dateStr}${pay.note?' · '+pay.note:''}</div></div>
+      ${proofHtml}
+      <div class="pay-amount">$${(pay.amount||2500).toLocaleString('es-CL')}</div>
+      ${del}
+    </div>`;
+  }).join('');
+}
+function openPaymentModal() {
+  document.getElementById('inp-pay-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('inp-pay-amount').value = 2500;
+  document.getElementById('inp-pay-note').value = '';
+  document.getElementById('inp-pay-proof').value = '';
+  document.getElementById('modal-payment').classList.add('open');
+}
+async function savePayment() {
+  const playerId = document.getElementById('inp-pay-player').value;
+  const date = document.getElementById('inp-pay-date').value;
+  const amount = parseInt(document.getElementById('inp-pay-amount').value)||2500;
+  if (amount < 2500) { toast('El monto mínimo es $2.500'); return; }
+  if (!playerId||!date) { toast('Selecciona jugador y fecha'); return; }
+  const file = document.getElementById('inp-pay-proof').files[0];
+  let proof = null;
+  if (file) { proof = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); }); }
+  payments.push({ id:uid(), playerId, date, amount, note:document.getElementById('inp-pay-note').value.trim(), proof });
+  saveAll(); closeModal('modal-payment'); renderPayments(); renderPlayers(); toast('Pago registrado');
+}
+function deletePayment(id) {
+  payments = payments.filter(p=>p.id!==id);
+  saveAll(); renderPayments(); toast('Pago eliminado');
+}
+function showProof(payId) {
+  const pay = payments.find(p=>p.id===payId);
+  if (!pay||!pay.proof) return;
+  if (pay.proof.startsWith('data:image')) {
+    document.getElementById('proof-img').src = pay.proof;
+    document.getElementById('proof-viewer').classList.add('open');
+  } else {
+    const a=document.createElement('a'); a.href=pay.proof; a.download='comprobante.pdf'; a.click();
+  }
+}
+
+// ---- FIELD ----
+function renderField() {
+  renderBench(); renderTokens();
+  document.getElementById('active-badge').textContent = activeIds.size + ' activos';
+}
+function renderBench() {
+  const actEl = document.getElementById('bench-active');
+  const inactEl = document.getElementById('bench-inactive');
+  const isAdmin = currentUser && currentUser.role==='admin';
+  actEl.innerHTML=''; inactEl.innerHTML='';
+  if (!players.length) { inactEl.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px">Sin jugadores</div>'; return; }
+  players.filter(p=>activeIds.has(p.id)).forEach(p=>actEl.appendChild(makeBenchItem(p,true,isAdmin)));
+  players.filter(p=>!activeIds.has(p.id)).forEach(p=>inactEl.appendChild(makeBenchItem(p,false,isAdmin)));
+  if (!actEl.children.length) actEl.innerHTML='<div style="font-size:11px;color:var(--text3);padding:4px 0">Nadie activo aún</div>';
+}
+function makeBenchItem(p,isActive,isAdmin) {
+  const div=document.createElement('div');
+  div.className='bench-item'+(isActive?' is-active':'');
+  div.dataset.id=p.id; div.draggable=isActive&&isAdmin;
+  const color=POS_COLORS[p.position]||'#1a7a3c';
+  const av=p.photo?`<img src="${p.photo}" alt="${p.name}">`:getInitials(p.name);
+  const avBg=p.photo?'':` style="background:${color}"`;
+  const toggleBtn = isAdmin ? `<button class="bench-toggle${isActive?' on':''}" onclick="toggleActive('${p.id}')" title="${isActive?'Desactivar':'Activar'}">${isActive?'✓':'+'}</button>` : '';
+  const team = playerTeams[p.id] || 'none';
+  const teamBtns = isActive && isAdmin ? `
+    <div style="display:flex;gap:3px;margin-left:2px">
+      <button onclick="setTeam('${p.id}','red')" title="Equipo Rojo" style="width:18px;height:18px;border-radius:50%;border:2px solid #c0392b;background:${team==='red'?'#c0392b':'transparent'};cursor:pointer;padding:0;flex-shrink:0"></button>
+      <button onclick="setTeam('${p.id}','black')" title="Equipo Negro" style="width:18px;height:18px;border-radius:50%;border:2px solid #1a1a1a;background:${team==='black'?'#1a1a1a':'transparent'};cursor:pointer;padding:0;flex-shrink:0"></button>
+    </div>` : '';
+  div.innerHTML=`<div class="bench-avatar"${avBg}>${av}</div><span class="bench-name">${p.name}</span>${teamBtns}${toggleBtn}`;
+  if (isActive&&isAdmin) {
+    div.addEventListener('dragstart',e=>{
+      draggingId=p.id; e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>div.style.opacity='0.4',0);
+    });
+    div.addEventListener('dragend',()=>{ div.style.opacity='1'; draggingId=null; });
+  }
+  return div;
+}
+function toggleActive(id) {
+  if (activeIds.has(id)) { activeIds.delete(id); delete fieldLayout[id]; }
+  else { activeIds.add(id); if (!fieldLayout[id]) fieldLayout[id]={x:50,y:50}; }
+  saveAll(); renderField();
+}
+function setTeam(id, team) {
+  if (playerTeams[id] === team) { delete playerTeams[id]; }
+  else { playerTeams[id] = team; }
+  saveAll(); renderField();
+}
+function activateAll() {
+  players.forEach(p=>{ if(!activeIds.has(p.id)){ activeIds.add(p.id); if(!fieldLayout[p.id]) fieldLayout[p.id]={x:50,y:50}; } });
+  saveAll(); renderField();
+}
+function deactivateAll() {
+  activeIds.clear(); fieldLayout={};
+  saveAll(); renderField();
+}
+function renderTokens() {
+  const wrap=document.getElementById('tokens-wrap');
+  wrap.innerHTML='';
+  activeIds.forEach(id=>{
+    const p=players.find(x=>x.id===id); if(!p) return;
+    const pos=fieldLayout[id]||{x:50,y:50};
+    const color=POS_COLORS[p.position]||'#1a7a3c';
+    const team = playerTeams[id] || 'none';
+    const borderColor = team==='red' ? '#c0392b' : team==='black' ? '#1a1a1a' : 'white';
+    const borderWidth = team!=='none' ? '3px' : '2px';
+    const token=document.createElement('div');
+    token.className='player-token'; token.dataset.id=id;
+    token.style.left=pos.x+'%'; token.style.top=pos.y+'%';
+    const av=p.photo?`<img src="${p.photo}" alt="${p.name}">`:getInitials(p.name);
+    const avBg=p.photo?'':` style="background:${color}"`;
+    token.innerHTML=`<div class="token-circle"${avBg} style="border:${borderWidth} solid ${borderColor};${team!=='none'?'box-shadow:0 0 0 1.5px white':''}">${av}</div><div class="token-label">${p.nick||p.name.split(' ')[0]}</div>`;
+    if (currentUser && currentUser.role==='admin') makeDraggableToken(token,id);
+    wrap.appendChild(token);
+  });
+  setupFieldDrop();
+}
+function makeDraggableToken(token,id) {
+  let sx,sy,sl,st,dragging=false;
+  const field=document.getElementById('field');
+  const down=e=>{
+    e.preventDefault(); dragging=true;
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    const fr=field.getBoundingClientRect();
+    sx=cx; sy=cy;
+    const pos=fieldLayout[id]||{x:50,y:50};
+    sl=pos.x; st=pos.y;
+    token.style.zIndex=20; token.style.cursor='grabbing';
+    const move=ev=>{
+      if(!dragging)return;
+      const ccx=ev.touches?ev.touches[0].clientX:ev.clientX;
+      const ccy=ev.touches?ev.touches[0].clientY:ev.clientY;
+      const dx=((ccx-sx)/fr.width)*100;
+      const dy=((ccy-sy)/fr.height)*100;
+      const nx=Math.min(95,Math.max(5,sl+dx));
+      const ny=Math.min(97,Math.max(3,st+dy));
+      fieldLayout[id]={x:nx,y:ny};
+      token.style.left=nx+'%'; token.style.top=ny+'%';
+    };
+    const up=()=>{
+      dragging=false; token.style.zIndex=10; token.style.cursor='grab';
+      document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+      document.removeEventListener('touchmove',move); document.removeEventListener('touchend',up);
+    };
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+    document.addEventListener('touchmove',move,{passive:false}); document.addEventListener('touchend',up);
+  };
+  token.addEventListener('mousedown',down); token.addEventListener('touchstart',down,{passive:false});
+}
+function setupFieldDrop() {
+  const zone=document.getElementById('field-drop');
+  zone.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='move';};
+  zone.ondrop=e=>{
+    e.preventDefault(); if(!draggingId)return;
+    const field=document.getElementById('field');
+    const fr=field.getBoundingClientRect();
+    const x=((e.clientX-fr.left)/fr.width)*100;
+    const y=((e.clientY-fr.top)/fr.height)*100;
+    fieldLayout[draggingId]={x:Math.min(95,Math.max(5,x)),y:Math.min(97,Math.max(3,y))};
+    if(!activeIds.has(draggingId))activeIds.add(draggingId);
+    draggingId=null; saveAll(); renderField();
+  };
+}
+function resetPositions() {
+  const spread=[{x:50,y:8},{x:25,y:22},{x:50,y:22},{x:75,y:22},{x:18,y:38},{x:50,y:38},{x:82,y:38},{x:18,y:55},{x:50,y:55},{x:82,y:55},{x:30,y:72},{x:70,y:72},{x:50,y:80}];
+  [...activeIds].forEach((id,i)=>{ fieldLayout[id]=spread[i]||{x:50,y:30+i*5}; });
+  saveAll(); renderTokens(); toast('Posiciones reseteadas');
+}
+function saveFieldLayout() { saveAll(); toast('Alineación guardada ✓'); }
+
+// ---- ADMIN CONFIG ----
+function changeAdminPass() {
+  const np=document.getElementById('new-admin-pass').value;
+  if (np.length<4) { toast('Mínimo 4 caracteres'); return; }
+  adminPass=np; saveAll(); toast('Clave actualizada'); document.getElementById('new-admin-pass').value='';
+}
+function clearAllData() {
+  if (!confirm('¿Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
+  players=[]; payments=[]; fieldLayout={}; activeIds=new Set();
+  saveAll(); renderPlayers(); renderPayments(); renderField(); toast('Datos eliminados');
+}
+
+// ---- INIT ----
+loadAll();
+populatePlayerSelect();
+</script>
+</body>
+</html>
