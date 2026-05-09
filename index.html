@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jabalí FC</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+<style>
+:root {
+  --green:#1a7a3c;--green-dark:#0f5228;--green-light:#e8f5ed;--green-mid:#2d9e54;
+  --gold:#c9a84c;--gold-light:#f5edda;--red:#c0392b;--red-light:#fdf0ee;
+  --blue:#1a5fa8;--blue-light:#e8f0fb;--purple:#6c3fcf;--purple-light:#f0ebff;
+  --bg:#f4f6f3;--bg2:#ffffff;--text:#1a1f1c;--text2:#4a5549;--text3:#8a9988;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--radius:10px;--radius-lg:16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--green-dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.4s}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-crest{width:90px;height:90px;border-radius:50%;background:var(--green-dark);border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--gold);letter-spacing:1px;margin-bottom:1rem}
+.splash-title{font-size:36px;font-weight:900;color:white;letter-spacing:3px;margin-bottom:4px}
+.splash-sub{font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:1px}
+.splash-loader{width:40px;height:3px;background:rgba(255,255,255,0.15);border-radius:99px;margin-top:2rem;overflow:hidden}
+.splash-loader-bar{height:100%;background:var(--gold);border-radius:99px;animation:load 1.2s ease forwards}
+@keyframes load{from{width:0}to{width:100%}}
+
+/* AUTH */
+#auth-screen{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--green-dark);padding:1rem}
+#auth-screen.visible{display:flex}
+.auth-box{background:var(--bg2);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:400px}
+.auth-logo{text-align:center;margin-bottom:1.5rem}
+.auth-crest{width:70px;height:70px;border-radius:50%;background:var(--green-dark);border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:var(--gold);margin:0 auto 0.75rem}
+.auth-title{font-size:26px;font-weight:900;color:var(--green-dark);letter-spacing:2px}
+.auth-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.auth-tabs{display:flex;background:var(--bg);border-radius:var(--radius);padding:3px;gap:3px;margin-bottom:1.25rem}
+.auth-tab{flex:1;padding:7px;border:none;border-radius:8px;background:transparent;font-size:13px;font-weight:500;cursor:pointer;color:var(--text3);transition:all 0.15s;font-family:inherit}
+.auth-tab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.form-group input,.form-group select{width:100%;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border2);font-family:inherit;font-size:14px;background:var(--bg);color:var(--text);transition:border-color 0.15s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--green)}
+.btn-auth{width:100%;padding:12px;border-radius:var(--radius);border:none;background:var(--green-dark);color:white;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:4px;transition:background 0.15s;font-family:inherit}
+.btn-auth:hover{background:var(--green)}
+.auth-error{font-size:12px;color:var(--red);margin-top:8px;min-height:16px;text-align:center}
+.auth-switch{font-size:12px;color:var(--text3);text-align:center;margin-top:12px}
+.auth-switch a{color:var(--green);cursor:pointer;font-weight:600}
+.pending-msg{background:var(--gold-light);border:1px solid var(--gold);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--green-dark);text-align:center;margin-top:8px;display:none}
+
+/* APP */
+#app{display:none;min-height:100vh}
+.topbar{background:var(--green-dark);color:white;padding:0 1.25rem;display:flex;align-items:center;gap:10px;height:54px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--gold)}
+.topbar-brand{font-size:20px;font-weight:900;color:var(--gold);letter-spacing:2px;white-space:nowrap}
+.topbar-brand span{font-size:11px;color:rgba(255,255,255,0.45);margin-left:6px;font-weight:400;letter-spacing:0}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.role-badge{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;background:var(--gold);color:var(--green-dark)}
+.role-badge.player{background:rgba(255,255,255,0.15);color:white}
+.btn-logout{padding:5px 10px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.btn-logout:hover{background:rgba(255,255,255,0.1);color:white}
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:0 0.5rem}
+.nav-btn{padding:12px 14px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.15s;font-family:inherit;display:flex;align-items:center;gap:5px}
+.nav-btn.active{color:var(--green-dark);border-bottom-color:var(--green-dark)}
+.main{max-width:960px;margin:0 auto;padding:1.25rem 1rem}
+.section{display:none}.section.active{display:block}
+
+/* COMPONENTS */
+.card{background:var(--bg2);border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.card-header h2{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.btn{padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;font-weight:500}
+.btn:hover{background:var(--bg)}
+.btn-primary{background:var(--green-dark);color:white;border-color:var(--green-dark)}.btn-primary:hover{background:var(--green)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:var(--red);border-color:rgba(192,57,43,0.3)}.btn-danger:hover{background:var(--red-light)}
+.btn-gold{background:var(--gold);color:var(--green-dark);border-color:var(--gold);font-weight:700}
+.filter-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-bar input,.filter-bar select{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);font-family:inherit;font-size:13px;color:var(--text)}
+.filter-bar input{flex:1;min-width:140px}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:13px}
+
+/* PLAYERS */
+.player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.player-card{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);padding:1rem;position:relative;transition:border-color 0.15s}
+.player-card:hover{border-color:var(--green-mid)}
+.player-card.active-p{border-color:var(--green-mid);border-width:2px}
+.player-card.pending-p{border-color:var(--gold);opacity:0.8}
+.p-avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:white;overflow:hidden;border:2px solid white}
+.p-avatar img{width:100%;height:100%;object-fit:cover}
+.p-name{font-size:14px;font-weight:700;margin-top:8px}
+.p-nick{font-size:12px;color:var(--text3)}
+.p-email{font-size:11px;color:var(--text3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;margin-top:6px}
+.pos-gk{background:#fef3d0;color:#8a6200}.pos-def{background:var(--blue-light);color:var(--blue)}
+.pos-mid{background:var(--purple-light);color:var(--purple)}.pos-fwd{background:var(--red-light);color:var(--red)}
+.admin-chip{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--gold-light);color:var(--green-dark);font-weight:700;margin-top:4px;display:inline-block}
+.pending-chip{font-size:10px;padding:1px 6px;border-radius:99px;background:#fff3cd;color:#856404;font-weight:700;margin-top:4px;display:inline-block}
+.active-dot{width:8px;height:8px;border-radius:50%;background:var(--green-mid);display:inline-block;margin-right:4px}
+.p-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px}
+
+/* PAYMENTS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center}
+.stat-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.stat-val{font-size:26px;font-weight:900;color:var(--green-dark)}
+.pay-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);margin-bottom:8px;flex-wrap:wrap}
+.pay-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0;overflow:hidden}
+.pay-av img{width:100%;height:100%;object-fit:cover}
+.pay-info{flex:1;min-width:0}
+.pay-name{font-size:13px;font-weight:700}
+.pay-date{font-size:11px;color:var(--text3)}
+.pay-amount{font-size:14px;font-weight:800;color:var(--green-dark);flex-shrink:0}
+.proof-btn{font-size:11px;padding:3px 10px;border-radius:var(--radius);background:var(--green-light);color:var(--green-dark);border:1px solid rgba(26,122,60,0.25);cursor:pointer;font-weight:600;white-space:nowrap}
+.no-proof{font-size:11px;color:var(--text3);flex-shrink:0}
+
+/* FIELD */
+.field-layout{display:grid;grid-template-columns:1fr 210px;gap:14px;align-items:start}
+.field-outer{background:#1a5228;border-radius:14px;padding:10px;border:2px solid #0d3319}
+.field-inner{position:relative;width:100%;aspect-ratio:.65;background:#1e6b30;border-radius:6px;overflow:hidden}
+.field-inner svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tokens-wrap{position:absolute;inset:0}
+.player-token{position:absolute;transform:translate(-50%,-50%);cursor:grab;user-select:none;text-align:center;z-index:10}
+.player-token:active{cursor:grabbing;z-index:20}
+.token-circle{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;overflow:hidden;margin:0 auto}
+.token-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.token-label{font-size:10px;color:white;margin-top:2px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis}
+.bench-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
+.bench-sl{font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px}
+.bench-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);margin-bottom:4px}
+.bench-item.is-active{border-color:var(--green-mid);background:var(--green-light);cursor:grab}
+.bench-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0;overflow:hidden}
+.bench-av img{width:100%;height:100%;object-fit:cover}
+.bench-name{font-size:12px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bench-toggle{width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:var(--text3);line-height:1}
+.bench-toggle.on{background:var(--green-mid);border-color:var(--green-mid);color:white}
+
+/* MODAL */
+.modal-bd{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.modal-bd.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--radius-lg);padding:1.5rem;width:100%;max-width:440px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:1.25rem}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+.form-row{display:flex;gap:10px}.form-row .form-group{flex:1}
+.pos-selector{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pos-opt{padding:8px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg);cursor:pointer;text-align:center;font-size:12px;font-weight:600;transition:all .15s}
+.pos-opt.selected{border-color:var(--green-dark);background:var(--green-light);color:var(--green-dark)}
+
+/* PROOF VIEWER */
+.proof-viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;align-items:center;justify-content:center;padding:1rem}
+.proof-viewer.open{display:flex}
+.proof-viewer img{max-width:90vw;max-height:85vh;border-radius:8px}
+.proof-close{position:absolute;top:16px;right:16px;width:36px;height:36px;background:white;border:none;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green-dark);color:white;padding:10px 20px;border-radius:var(--radius);font-size:13px;z-index:3000;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;border-top:2px solid var(--gold)}
+.toast.show{opacity:1}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:500;display:none;align-items:center;justify-content:center}
+.loading-overlay.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--green-dark);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ADMIN */
+.player-approval-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);margin-bottom:8px}
+
+@media(max-width:600px){
+  .field-layout{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr 1fr}
+  .player-grid{grid-template-columns:1fr 1fr}
+  .topbar-brand span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-crest">JFC</div>
+  <div class="splash-title">JABALÍ FC</div>
+  <div class="splash-sub">FÚTBOL SEMANAL</div>
+  <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-crest">JFC</div>
+      <div class="auth-title">JABALÍ FC</div>
+      <div class="auth-sub">Miércoles y Jueves</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="setAuthTab('login')" id="atab-login">Iniciar sesión</button>
+      <button class="auth-tab" onclick="setAuthTab('register')" id="atab-register">Registrarme</button>
+      <button class="auth-tab" onclick="setAuthTab('admin')" id="atab-admin">Admin</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-login">
+      <div class="form-group"><label>Correo</label><input type="email" id="l-email" placeholder="tu@correo.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <p class="auth-error" id="l-error"></p>
+      <button class="btn-auth" onclick="doLogin()">ENTRAR</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="auth-register" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label>Nombre completo *</label><input type="text" id="r-name" placeholder="Carlos Ramírez"></div>
+        <div class="form-group"><label>Apodo</label><input type="text" id="r-nick" placeholder="Carlitos"></div>
+      </div>
+      <div class="form-group"><label>Correo *</label><input type="email" id="r-email" placeholder="tu@correo.com"></div>
+      <div class="form-group"><label>Contraseña * (mínimo 6 caracteres)</label><input type="password" id="r-pass" placeholder="••••••••"></div>
+      <div class="form-group">
+        <label>Posición en el campo *</label>
+        <div class="pos-selector">
+          <div class="pos-opt" onclick="selRegPos('Portero',this)">🧤 Portero</div>
+          <div class="pos-opt" onclick="selRegPos('Defensa',this)">🛡 Defensa</div>
+          <div class="pos-opt" onclick="selRegPos('Mediocampista',this)">⚡ Mediocampista</div>
+          <div class="pos-opt" onclick="selRegPos('Delantero',this)">⚽ Delantero</div>
+        </div>
+        <input type="hidden" id="r-pos">
+      </div>
+      <div class="form-group"><label>Foto (opcional)</label><input type="file" id="r-photo" accept="image/*"></div>
+      <p class="auth-error" id="r-error"></p>
+      <button class="btn-auth" onclick="doRegister()">REGISTRARME</button>
+      <div class="pending-msg" id="pending-msg">✅ Registro enviado. El administrador aprobará tu cuenta pronto.</div>
+    </div>
+
+    <!-- ADMIN LOGIN -->
+    <div id="auth-admin" style="display:none">
+      <div class="form-group"><label>Clave de administrador</label><input type="password" id="a-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+      <p class="auth-error" id="a-error"></p>
+      <button class="btn-auth" onclick="doAdminLogin()">ENTRAR COMO ADMIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">JABALÍ FC <span>⚽ Fútbol semanal</span></div>
+    <div class="topbar-right">
+      <span id="tb-name" style="font-size:13px;color:rgba(255,255,255,.8)"></span>
+      <span class="role-badge" id="tb-role">Admin</span>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showSection('s-players')" id="nb-players">👥 Jugadores</button>
+    <button class="nav-btn" onclick="showSection('s-payments')" id="nb-payments">💳 Pagos</button>
+    <button class="nav-btn" onclick="showSection('s-field')" id="nb-field">⚽ Alineación</button>
+    <button class="nav-btn admin-only" onclick="showSection('s-admin')" id="nb-admin" style="display:none">⚙ Admin</button>
+  </div>
+  <div class="main">
+
+    <!-- JUGADORES -->
+    <div class="section active" id="s-players">
+      <div class="card">
+        <div class="card-header">
+          <h2>👥 Fichas de jugadores</h2>
+          <button class="btn btn-primary admin-only" onclick="openPlayerModal()" style="display:none">+ Agregar</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="sp-q" placeholder="Buscar..." oninput="renderPlayers()">
+          <select id="sp-pos" onchange="renderPlayers()">
+            <option value="">Todas las posiciones</option>
+            <option>Portero</option><option>Defensa</option><option>Mediocampista</option><option>Delantero</option>
+          </select>
+        </div>
+        <div class="player-grid" id="player-grid"></div>
+      </div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="section" id="s-payments">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-label">Total pagos</div><div class="stat-val" id="st-total">0</div></div>
+        <div class="stat-box"><div class="stat-label">Recaudado</div><div class="stat-val" id="st-amount">$0</div></div>
+        <div class="stat-box"><div class="stat-label">Jugadores</div><div class="stat-val" id="st-unique">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2>💳 Historial de pagos</h2>
+          <button class="btn btn-primary admin-only" onclick="openPaymentModal()" style="display:none">+ Registrar</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="pay-q" placeholder="Buscar jugador..." oninput="renderPayments()">
+          <select id="pay-fp" onchange="renderPayments()"><option value="">Todos</option></select>
+        </div>
+        <div id="payments-list"></div>
+      </div>
+    </div>
+
+    <!-- ALINEACION -->
+    <div class="section" id="s-field">
+      <div class="card" style="padding:1rem">
+        <div class="card-header">
+          <h2>⚽ Alineación
+            <span id="active-badge" style="font-size:11px;padding:2px 8px;border-radius:99px;background:var(--green-light);color:var(--green-dark);font-weight:700">0 activos</span>
+          </h2>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)">
+              <span style="width:12px;height:12px;border-radius:50%;background:#c0392b;display:inline-block;border:2px solid #c0392b"></span>Rojo
+              <span style="width:12px;height:12px;border-radius:50%;background:#1a1a1a;display:inline-block;border:2px solid #1a1a1a;margin-left:6px"></span>Negro
+            </div>
+            <button class="btn btn-sm admin-only" onclick="resetPositions()" style="display:none">↺ Resetear</button>
+            <button class="btn btn-sm btn-primary admin-only" onclick="saveFieldLayout()" style="display:none">💾 Guardar</button>
+          </div>
+        </div>
+        <div class="field-layout">
+          <div class="field-outer">
+            <div class="field-inner" id="field">
+              <svg viewBox="0 0 300 460" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <rect x="0" y="0" width="300" height="460" fill="#1e6b30"/>
+                <rect x="14" y="14" width="272" height="432" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+                <line x1="14" y1="230" x2="286" y2="230" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="150" cy="230" r="36" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="150" cy="230" r="2.5" fill="rgba(255,255,255,0.6)"/>
+                <rect x="85" y="14" width="130" height="56" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <rect x="110" y="14" width="80" height="26" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <rect x="85" y="390" width="130" height="56" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <rect x="110" y="420" width="80" height="26" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="150" cy="68" r="2" fill="rgba(255,255,255,0.5)"/>
+                <circle cx="150" cy="392" r="2" fill="rgba(255,255,255,0.5)"/>
+                <path d="M110 14 Q150 38 190 14" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                <path d="M110 446 Q150 422 190 446" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+              </svg>
+              <div class="tokens-wrap" id="tokens-wrap"></div>
+              <div id="field-drop" style="position:absolute;inset:0;z-index:5"></div>
+            </div>
+            <p style="text-align:center;font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px">Arrastra jugadores al campo</p>
+          </div>
+          <div>
+            <div class="bench-panel">
+              <div style="font-size:13px;font-weight:700;margin-bottom:8px">Plantel</div>
+              <div class="bench-sl">En cancha</div>
+              <div id="bench-active"></div>
+              <div class="bench-sl" style="margin-top:10px">Banca</div>
+              <div id="bench-inactive"></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+              <button class="btn btn-sm admin-only" onclick="activateAll()" style="display:none">✓ Todos</button>
+              <button class="btn btn-sm admin-only" onclick="deactivateAll()" style="display:none">✕ Limpiar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="section" id="s-admin">
+      <div class="card">
+        <div class="card-header"><h2>⚙ Panel de administración</h2></div>
+        <div style="display:grid;gap:1.25rem">
+
+          <div>
+            <p style="font-size:14px;font-weight:700;margin-bottom:10px">Jugadores pendientes de aprobación</p>
+            <div id="pending-list"><div class="empty-state">Sin solicitudes pendientes</div></div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:1rem">
+            <p style="font-size:14px;font-weight:700;margin-bottom:10px">Cambiar clave de administrador</p>
+            <div style="display:flex;gap:8px">
+              <input type="password" id="new-apass" placeholder="Nueva clave" style="flex:1;padding:9px 11px;border-radius:var(--radius);border:1px solid var(--border2);font-family:inherit;font-size:13px;background:var(--bg)">
+              <button class="btn btn-primary" onclick="changeAdminPass()">Guardar</button>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:1rem">
+            <p style="font-size:14px;font-weight:700;margin-bottom:4px">⚠ Zona de peligro</p>
+            <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Esta acción no se puede deshacer.</p>
+            <button class="btn btn-danger" onclick="clearAllData()">🗑 Borrar todos los datos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bd" id="modal-player">
+  <div class="modal">
+    <h3 id="mp-title">Agregar jugador</h3>
+    <div class="form-row">
+      <div class="form-group"><label>Nombre *</label><input type="text" id="mp-name" placeholder="Carlos Ramírez"></div>
+      <div class="form-group"><label>Apodo</label><input type="text" id="mp-nick" placeholder="Carlitos"></div>
+    </div>
+    <div class="form-group"><label>Correo</label><input type="email" id="mp-email" placeholder="carlos@email.com"></div>
+    <div class="form-group">
+      <label>Posición *</label>
+      <div class="pos-selector">
+        <div class="pos-opt" onclick="selPos('Portero',this)">🧤 Portero</div>
+        <div class="pos-opt" onclick="selPos('Defensa',this)">🛡 Defensa</div>
+        <div class="pos-opt" onclick="selPos('Mediocampista',this)">⚡ Mediocampista</div>
+        <div class="pos-opt" onclick="selPos('Delantero',this)">⚽ Delantero</div>
+      </div>
+      <input type="hidden" id="mp-pos">
+    </div>
+    <div class="form-group"><label>Foto</label><input type="file" id="mp-photo" accept="image/*"></div>
+    <div class="form-group"><label>Rol</label>
+      <select id="mp-role"><option value="player">Jugador</option><option value="admin">Administrador</option></select>
+    </div>
+    <div class="form-group"><label>Contraseña (dejar vacío para no cambiar)</label><input type="password" id="mp-pass" placeholder="••••••••"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-player')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePlayer()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bd" id="modal-payment">
+  <div class="modal">
+    <h3>Registrar pago</h3>
+    <div class="form-group"><label>Jugador *</label><select id="pp-player"><option value="">Seleccionar...</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha del partido *</label><input type="date" id="pp-date"></div>
+      <div class="form-group"><label>Monto (CLP) *</label><input type="number" id="pp-amount" value="2500" min="2500" step="500"></div>
+    </div>
+    <div class="form-group"><label>Comprobante (imagen)</label><input type="file" id="pp-proof" accept="image/*,.pdf"></div>
+    <div class="form-group"><label>Nota</label><input type="text" id="pp-note" placeholder="Ej: Partido miércoles"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-payment')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePayment()">✓ Registrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="proof-viewer" id="proof-viewer" onclick="this.classList.remove('open')">
+  <button class="proof-close" onclick="document.getElementById('proof-viewer').classList.remove('open')">✕</button>
+  <img id="proof-img" src="" alt="Comprobante">
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// SUPABASE CONFIG
+// ════════════════════════════════════════
+const SUPA_URL = 'https://qlqgmettnkjfdeqaonud.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFscWdtZXR0bmtqZmRlcWFvbnVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzNDE2MzYsImV4cCI6MjA5MzkxNzYzNn0.DEM5EsCLmXCQgjR2q23s0Hk5fpCFdkqRcDN1yw-ymk8';
+
+const ADMIN_PASS_KEY = 'jabali_admin_pass';
+
+// ════════════════════════════════════════
+// SUPABASE CLIENT
+// ════════════════════════════════════════
+const db = {
+  async req(method, path, body, params) {
+    let url = `${SUPA_URL}/rest/v1/${path}`;
+    if (params) url += '?' + new URLSearchParams(params).toString();
+    const opts = {
+      method,
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': method === 'POST' ? 'return=representation' : 'return=representation'
+      }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(url, opts);
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.statusText); }
+    const txt = await r.text();
+    return txt ? JSON.parse(txt) : null;
+  },
+  get: (path, params) => db.req('GET', path, null, params),
+  post: (path, body) => db.req('POST', path, body),
+  patch: (path, body, params) => db.req('PATCH', path, body, params),
+  delete: (path, params) => db.req('DELETE', path, null, params),
+  async upload(bucket, path, file) {
+    const url = `${SUPA_URL}/storage/v1/object/${bucket}/${path}`;
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` },
+      body: file
+    });
+    if (!r.ok) throw new Error('Upload failed');
+    return `${SUPA_URL}/storage/v1/object/public/${bucket}/${path}`;
+  }
+};
+
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let players = [], payments = [], lineup = [];
+let currentUser = null; // {role, id, name}
+let editingPlayerId = null;
+let authTab = 'login';
+let regPos = '', editPos = '';
+let draggingId = null;
+let adminPass = localStorage.getItem(ADMIN_PASS_KEY) || 'jabali2025';
+
+const POS_COLORS = { Portero:'#b07a00', Defensa:'#1a5fa8', Mediocampista:'#6c3fcf', Delantero:'#c0392b' };
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function getInitials(n) { return (n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function showLoading(v) { document.getElementById('loading').classList.toggle('show', v); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+function applyRoleUI() {
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin() ? '' : 'none');
+}
+
+// ════════════════════════════════════════
+// AUTH TAB
+// ════════════════════════════════════════
+function setAuthTab(tab) {
+  authTab = tab;
+  ['login','register','admin'].forEach(t => {
+    document.getElementById('atab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('auth-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.getElementById('pending-msg').style.display = 'none';
+  ['l-error','r-error','a-error'].forEach(id => document.getElementById(id).textContent = '');
+}
+function selRegPos(pos, el) {
+  regPos = pos;
+  document.querySelectorAll('#auth-register .pos-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('r-pos').value = pos;
+}
+
+// ════════════════════════════════════════
+// SIMPLE HASH (sin bcrypt para compatibilidad)
+// ════════════════════════════════════════
+async function hashPass(pass) {
+  const enc = new TextEncoder().encode(pass + 'jabali_salt_2025');
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ════════════════════════════════════════
+// REGISTER
+// ════════════════════════════════════════
+async function doRegister() {
+  const name = document.getElementById('r-name').value.trim();
+  const nick = document.getElementById('r-nick').value.trim();
+  const email = document.getElementById('r-email').value.trim().toLowerCase();
+  const pass = document.getElementById('r-pass').value;
+  const pos = document.getElementById('r-pos').value;
+  const err = document.getElementById('r-error');
+  if (!name || !email || !pass || !pos) { err.textContent = 'Completa todos los campos obligatorios'; return; }
+  if (pass.length < 6) { err.textContent = 'La contraseña debe tener mínimo 6 caracteres'; return; }
+  showLoading(true);
+  try {
+    // Check if email exists
+    const exist = await db.get('profiles', { email: `eq.${email}`, select: 'id' });
+    if (exist && exist.length > 0) { err.textContent = 'Este correo ya está registrado'; showLoading(false); return; }
+    const hashed = await hashPass(pass);
+    // Upload photo if any
+    let photo_url = null;
+    const file = document.getElementById('r-photo').files[0];
+    if (file) {
+      const ext = file.name.split('.').pop();
+      photo_url = await db.upload('jabali', `photos/${uid()}.${ext}`, file);
+    }
+    await db.post('profiles', { name, nick, email, password_hash: hashed, position: pos, role: 'player', approved: false, photo_url });
+    document.getElementById('pending-msg').style.display = 'block';
+    ['r-name','r-nick','r-email','r-pass'].forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('#auth-register .pos-opt').forEach(o => o.classList.remove('selected'));
+    regPos = '';
+    toast('Registro enviado. Espera aprobación del admin.');
+  } catch(e) { err.textContent = 'Error: ' + e.message; }
+  showLoading(false);
+}
+
+// ════════════════════════════════════════
+// LOGIN PLAYER
+// ════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  const err = document.getElementById('l-error');
+  if (!email || !pass) { err.textContent = 'Ingresa correo y contraseña'; return; }
+  showLoading(true);
+  try {
+    const rows = await db.get('profiles', { email: `eq.${email}`, select: '*' });
+    if (!rows || !rows.length) { err.textContent = 'Correo no encontrado'; showLoading(false); return; }
+    const player = rows[0];
+    const hashed = await hashPass(pass);
+    if (player.password_hash !== hashed) { err.textContent = 'Contraseña incorrecta'; showLoading(false); return; }
+    if (!player.approved) { err.textContent = 'Tu cuenta aún no ha sido aprobada por el administrador'; showLoading(false); return; }
+    currentUser = { role: player.role || 'player', id: player.id, name: player.name };
+    await startApp();
+  } catch(e) { err.textContent = 'Error: ' + e.message; }
+  showLoading(false);
+}
+
+// ════════════════════════════════════════
+// LOGIN ADMIN
+// ════════════════════════════════════════
+async function doAdminLogin() {
+  const pass = document.getElementById('a-pass').value;
+  const err = document.getElementById('a-error');
+  if (pass !== adminPass) { err.textContent = 'Clave incorrecta'; return; }
+  currentUser = { role: 'admin', id: 'admin', name: 'Administrador' };
+  await startApp();
+}
+
+// ════════════════════════════════════════
+// START APP
+// ════════════════════════════════════════
+async function startApp() {
+  showLoading(true);
+  document.getElementById('auth-screen').classList.remove('visible');
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tb-name').textContent = currentUser.name;
+  document.getElementById('tb-role').textContent = isAdmin() ? '⚙ Admin' : '⚽ Jugador';
+  document.getElementById('tb-role').className = 'role-badge' + (isAdmin() ? '' : ' player');
+  applyRoleUI();
+  await loadAll();
+  showLoading(false);
+}
+
+function logout() {
+  currentUser = null;
+  players = []; payments = []; lineup = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').classList.add('visible');
+  document.getElementById('a-pass').value = '';
+  document.getElementById('l-email').value = '';
+  document.getElementById('l-pass').value = '';
+  setAuthTab('login');
+}
+
+// ════════════════════════════════════════
+// LOAD DATA
+// ════════════════════════════════════════
+async function loadAll() {
+  try {
+    players = await db.get('profiles', { approved: 'eq.true', order: 'created_at.asc', select: '*' }) || [];
+  } catch(e) { players = []; }
+  try {
+    payments = await db.get('payments', { order: 'created_at.desc', select: '*' }) || [];
+  } catch(e) { payments = []; }
+  try {
+    lineup = await db.get('lineup', { select: '*' }) || [];
+  } catch(e) { lineup = []; }
+  renderPlayers();
+  renderPayments();
+  renderField();
+  updatePayFilter();
+  if (isAdmin()) renderPending();
+}
+
+// ════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const nb = id.replace('s-','nb-');
+  const el = document.getElementById(nb);
+  if (el) el.classList.add('active');
+  if (id === 's-admin') renderPending();
+}
+
+// ════════════════════════════════════════
+// PLAYERS
+// ════════════════════════════════════════
+function renderPlayers() {
+  const grid = document.getElementById('player-grid');
+  const q = (document.getElementById('sp-q').value || '').toLowerCase();
+  const fp = document.getElementById('sp-pos').value;
+  let list = players.filter(p => ((p.name||'')+(p.nick||'')+(p.email||'')).toLowerCase().includes(q) && (!fp || p.position === fp));
+  if (!list.length) { grid.innerHTML = '<div class="empty-state">No hay jugadores aprobados aún</div>'; return; }
+  const activeIds = new Set(lineup.filter(l => l.active).map(l => l.player_id));
+  grid.innerHTML = list.map(p => {
+    const color = POS_COLORS[p.position] || '#1a7a3c';
+    const av = p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}">` : getInitials(p.name);
+    const avBg = p.photo_url ? '' : `background:${color}`;
+    const posCls = {Portero:'pos-gk',Defensa:'pos-def',Mediocampista:'pos-mid',Delantero:'pos-fwd'}[p.position] || '';
+    const active = activeIds.has(p.id);
+    const acts = isAdmin() ? `<div class="p-actions">
+      <button class="btn btn-sm" onclick="editPlayer('${p.id}')">✏</button>
+      <button class="btn btn-sm btn-danger" onclick="deletePlayer('${p.id}')">🗑</button>
+    </div>` : '';
+    return `<div class="player-card${active?' active-p':''}">
+      ${acts}
+      <div class="p-avatar" style="${avBg}">${av}</div>
+      <div class="p-name">${p.name}</div>
+      ${p.nick ? `<div class="p-nick">"${p.nick}"</div>` : ''}
+      ${p.email ? `<div class="p-email">✉ ${p.email}</div>` : ''}
+      <span class="pos-badge ${posCls}">${p.position || ''}</span>
+      ${p.role === 'admin' ? '<span class="admin-chip">⚙ Admin</span>' : ''}
+      ${active ? '<div style="margin-top:5px;font-size:11px;color:var(--green-dark);font-weight:600"><span class="active-dot"></span>Activo</div>' : ''}
+      <div style="margin-top:3px;font-size:11px;color:var(--text3)">${payments.filter(pay=>pay.player_id===p.id).length} pago(s)</div>
+    </div>`;
+  }).join('');
+}
+
+function openPlayerModal(id) {
+  editingPlayerId = id || null;
+  document.getElementById('mp-title').textContent = id ? 'Editar jugador' : 'Agregar jugador';
+  if (id) {
+    const p = players.find(x => x.id === id);
+    document.getElementById('mp-name').value = p.name || '';
+    document.getElementById('mp-nick').value = p.nick || '';
+    document.getElementById('mp-email').value = p.email || '';
+    document.getElementById('mp-pos').value = p.position || '';
+    document.getElementById('mp-role').value = p.role || 'player';
+    document.getElementById('mp-pass').value = '';
+    editPos = p.position || '';
+    document.querySelectorAll('#modal-player .pos-opt').forEach(el => el.classList.toggle('selected', el.textContent.includes(p.position)));
+  } else {
+    ['mp-name','mp-nick','mp-email','mp-pass'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('mp-pos').value = '';
+    document.getElementById('mp-role').value = 'player';
+    editPos = '';
+    document.querySelectorAll('#modal-player .pos-opt').forEach(el => el.classList.remove('selected'));
+  }
+  document.getElementById('modal-player').classList.add('open');
+}
+function editPlayer(id) { openPlayerModal(id); }
+function selPos(pos, el) {
+  editPos = pos;
+  document.querySelectorAll('#modal-player .pos-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('mp-pos').value = pos;
+}
+
+async function savePlayer() {
+  const name = document.getElementById('mp-name').value.trim();
+  const pos = document.getElementById('mp-pos').value;
+  if (!name || !pos) { toast('Completa nombre y posición'); return; }
+  showLoading(true);
+  try {
+    let photo_url = editingPlayerId ? (players.find(p=>p.id===editingPlayerId)||{}).photo_url : null;
+    const file = document.getElementById('mp-photo').files[0];
+    if (file) {
+      const ext = file.name.split('.').pop();
+      photo_url = await db.upload('jabali', `photos/${uid()}.${ext}`, file);
+    }
+    const data = {
+      name,
+      nick: document.getElementById('mp-nick').value.trim(),
+      email: document.getElementById('mp-email').value.trim().toLowerCase(),
+      position: pos,
+      role: document.getElementById('mp-role').value,
+      photo_url,
+      approved: true
+    };
+    const passVal = document.getElementById('mp-pass').value;
+    if (passVal) data.password_hash = await hashPass(passVal);
+    if (editingPlayerId) {
+      await db.patch('profiles', data, { id: `eq.${editingPlayerId}` });
+    } else {
+      if (!passVal) { toast('Asigna una contraseña'); showLoading(false); return; }
+      await db.post('profiles', data);
+    }
+    await loadAll();
+    closeModal('modal-player');
+    toast(editingPlayerId ? 'Jugador actualizado' : 'Jugador agregado');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function deletePlayer(id) {
+  if (!confirm('¿Eliminar este jugador?')) return;
+  showLoading(true);
+  try {
+    await db.delete('profiles', { id: `eq.${id}` });
+    await loadAll();
+    toast('Jugador eliminado');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+// ════════════════════════════════════════
+// PAYMENTS
+// ════════════════════════════════════════
+function updatePayFilter() {
+  const sel = document.getElementById('pay-fp');
+  const pp = document.getElementById('pp-player');
+  const opts = players.map(p => `<option value="${p.id}">${p.name}${p.nick?' ('+p.nick+')':''}</option>`).join('');
+  sel.innerHTML = '<option value="">Todos</option>' + opts;
+  pp.innerHTML = '<option value="">Seleccionar...</option>' + opts;
+}
+
+function renderPayments() {
+  const list = document.getElementById('payments-list');
+  const q = (document.getElementById('pay-q').value || '').toLowerCase();
+  const fp = document.getElementById('pay-fp').value;
+  let filtered = payments.filter(pay => {
+    const pl = players.find(p => p.id === pay.player_id);
+    const nm = pl ? ((pl.name||'')+(pl.nick||'')).toLowerCase() : '';
+    return nm.includes(q) && (!fp || pay.player_id === fp);
+  });
+  const total = filtered.reduce((s, p) => s + (p.amount || 2500), 0);
+  document.getElementById('st-total').textContent = filtered.length;
+  document.getElementById('st-amount').textContent = '$' + total.toLocaleString('es-CL');
+  document.getElementById('st-unique').textContent = new Set(filtered.map(p => p.player_id)).size;
+  if (!filtered.length) { list.innerHTML = '<div class="empty-state">No hay pagos registrados</div>'; return; }
+  list.innerHTML = filtered.map(pay => {
+    const pl = players.find(p => p.id === pay.player_id);
+    const nm = pl ? pl.name : 'Jugador eliminado';
+    const color = pl ? (POS_COLORS[pl.position] || '#1a7a3c') : '#888';
+    const av = pl && pl.photo_url ? `<img src="${pl.photo_url}" alt="${nm}">` : getInitials(nm);
+    const avBg = pl && pl.photo_url ? '' : `background:${color}`;
+    const dateStr = pay.match_date ? new Date(pay.match_date+'T12:00:00').toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) : '';
+    const proofHtml = pay.proof_url
+      ? `<span class="proof-btn" onclick="showProof('${pay.proof_url}')">📎 Ver comprobante</span>`
+      : `<span class="no-proof">Sin comprobante</span>`;
+    const del = isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="deletePayment('${pay.id}')">🗑</button>` : '';
+    return `<div class="pay-row">
+      <div class="pay-av" style="${avBg}">${av}</div>
+      <div class="pay-info"><div class="pay-name">${nm}</div><div class="pay-date">${dateStr}${pay.note?' · '+pay.note:''}</div></div>
+      ${proofHtml}
+      <div class="pay-amount">$${(pay.amount||2500).toLocaleString('es-CL')}</div>
+      ${del}
+    </div>`;
+  }).join('');
+}
+
+function openPaymentModal() {
+  document.getElementById('pp-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('pp-amount').value = 2500;
+  document.getElementById('pp-note').value = '';
+  document.getElementById('pp-proof').value = '';
+  document.getElementById('modal-payment').classList.add('open');
+}
+
+async function savePayment() {
+  const player_id = document.getElementById('pp-player').value;
+  const match_date = document.getElementById('pp-date').value;
+  const amount = parseInt(document.getElementById('pp-amount').value) || 2500;
+  if (amount < 2500) { toast('Monto mínimo $2.500'); return; }
+  if (!player_id || !match_date) { toast('Selecciona jugador y fecha'); return; }
+  showLoading(true);
+  try {
+    let proof_url = null;
+    const file = document.getElementById('pp-proof').files[0];
+    if (file) {
+      const ext = file.name.split('.').pop();
+      proof_url = await db.upload('jabali', `proofs/${uid()}.${ext}`, file);
+    }
+    await db.post('payments', {
+      player_id, match_date, amount, proof_url,
+      note: document.getElementById('pp-note').value.trim()
+    });
+    await loadAll();
+    closeModal('modal-payment');
+    toast('Pago registrado ✓');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function deletePayment(id) {
+  showLoading(true);
+  try {
+    await db.delete('payments', { id: `eq.${id}` });
+    await loadAll();
+    toast('Pago eliminado');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+function showProof(url) {
+  if (!url) return;
+  if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes('/storage/')) {
+    document.getElementById('proof-img').src = url;
+    document.getElementById('proof-viewer').classList.add('open');
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+// ════════════════════════════════════════
+// FIELD / LINEUP
+// ════════════════════════════════════════
+function getLineup(pid) { return lineup.find(l => l.player_id === pid); }
+
+function renderField() {
+  renderBench();
+  renderTokens();
+  const activeCount = lineup.filter(l => l.active).length;
+  document.getElementById('active-badge').textContent = activeCount + ' activos';
+}
+
+function renderBench() {
+  const actEl = document.getElementById('bench-active');
+  const inactEl = document.getElementById('bench-inactive');
+  actEl.innerHTML = ''; inactEl.innerHTML = '';
+  if (!players.length) { inactEl.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:4px">Sin jugadores</div>'; return; }
+  const active = players.filter(p => getLineup(p.id)?.active);
+  const inactive = players.filter(p => !getLineup(p.id)?.active);
+  if (!active.length) actEl.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:4px 0">Nadie activo aún</div>';
+  active.forEach(p => actEl.appendChild(makeBenchItem(p, true)));
+  inactive.forEach(p => inactEl.appendChild(makeBenchItem(p, false)));
+}
+
+function makeBenchItem(p, isActive) {
+  const div = document.createElement('div');
+  div.className = 'bench-item' + (isActive ? ' is-active' : '');
+  div.dataset.id = p.id;
+  div.draggable = isActive && isAdmin();
+  const color = POS_COLORS[p.position] || '#1a7a3c';
+  const av = p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}">` : getInitials(p.name);
+  const avBg = p.photo_url ? '' : ` style="background:${color}"`;
+  const lu = getLineup(p.id);
+  const team = lu?.team || 'none';
+  const teamBtns = isActive && isAdmin() ? `
+    <div style="display:flex;gap:3px">
+      <button onclick="setTeam('${p.id}','red')" title="Equipo Rojo" style="width:16px;height:16px;border-radius:50%;border:2px solid #c0392b;background:${team==='red'?'#c0392b':'transparent'};cursor:pointer;padding:0;flex-shrink:0"></button>
+      <button onclick="setTeam('${p.id}','black')" title="Equipo Negro" style="width:16px;height:16px;border-radius:50%;border:2px solid #333;background:${team==='black'?'#333':'transparent'};cursor:pointer;padding:0;flex-shrink:0"></button>
+    </div>` : '';
+  const toggleBtn = isAdmin() ? `<button class="bench-toggle${isActive?' on':''}" onclick="toggleActive('${p.id}')">${isActive?'✓':'+'}</button>` : '';
+  div.innerHTML = `<div class="bench-av"${avBg}>${av}</div><span class="bench-name">${p.name}</span>${teamBtns}${toggleBtn}`;
+  if (isActive && isAdmin()) {
+    div.addEventListener('dragstart', e => {
+      draggingId = p.id; e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => div.style.opacity = '0.4', 0);
+    });
+    div.addEventListener('dragend', () => { div.style.opacity = '1'; draggingId = null; });
+  }
+  return div;
+}
+
+async function toggleActive(id) {
+  const lu = getLineup(id);
+  showLoading(true);
+  try {
+    if (lu) {
+      await db.patch('lineup', { active: !lu.active, updated_at: new Date().toISOString() }, { player_id: `eq.${id}` });
+    } else {
+      await db.post('lineup', { player_id: id, active: true, pos_x: 50, pos_y: 50, team: 'none' });
+    }
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function setTeam(id, team) {
+  const lu = getLineup(id);
+  const newTeam = lu?.team === team ? 'none' : team;
+  showLoading(true);
+  try {
+    if (lu) {
+      await db.patch('lineup', { team: newTeam, updated_at: new Date().toISOString() }, { player_id: `eq.${id}` });
+    } else {
+      await db.post('lineup', { player_id: id, active: true, pos_x: 50, pos_y: 50, team: newTeam });
+    }
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+function renderTokens() {
+  const wrap = document.getElementById('tokens-wrap');
+  wrap.innerHTML = '';
+  const active = lineup.filter(l => l.active);
+  active.forEach(lu => {
+    const p = players.find(x => x.id === lu.player_id);
+    if (!p) return;
+    const color = POS_COLORS[p.position] || '#1a7a3c';
+    const team = lu.team || 'none';
+    const borderColor = team === 'red' ? '#c0392b' : team === 'black' ? '#1a1a1a' : 'white';
+    const borderW = team !== 'none' ? '3px' : '2px';
+    const shadow = team !== 'none' ? 'box-shadow:0 0 0 1.5px white;' : '';
+    const token = document.createElement('div');
+    token.className = 'player-token';
+    token.dataset.id = p.id;
+    token.style.left = (lu.pos_x || 50) + '%';
+    token.style.top = (lu.pos_y || 50) + '%';
+    const av = p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}">` : getInitials(p.name);
+    const avBg = p.photo_url ? '' : ` style="background:${color}"`;
+    token.innerHTML = `<div class="token-circle"${avBg} style="border:${borderW} solid ${borderColor};${shadow}">${av}</div><div class="token-label">${p.nick||p.name.split(' ')[0]}</div>`;
+    if (isAdmin()) makeDraggableToken(token, lu);
+    wrap.appendChild(token);
+  });
+  setupFieldDrop();
+}
+
+function makeDraggableToken(token, lu) {
+  let sx, sy, sl, st, dragging = false;
+  const field = document.getElementById('field');
+  const down = e => {
+    e.preventDefault(); dragging = true;
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    const fr = field.getBoundingClientRect();
+    sx = cx; sy = cy; sl = lu.pos_x || 50; st = lu.pos_y || 50;
+    token.style.zIndex = 20; token.style.cursor = 'grabbing';
+    const move = ev => {
+      if (!dragging) return;
+      const cx2 = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const cy2 = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      const nx = Math.min(95, Math.max(5, sl + ((cx2-sx)/fr.width)*100));
+      const ny = Math.min(97, Math.max(3, st + ((cy2-sy)/fr.height)*100));
+      lu.pos_x = nx; lu.pos_y = ny;
+      token.style.left = nx + '%'; token.style.top = ny + '%';
+    };
+    const up = () => {
+      dragging = false; token.style.zIndex = 10; token.style.cursor = 'grab';
+      document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
+      document.removeEventListener('touchmove', move); document.removeEventListener('touchend', up);
+    };
+    document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+    document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', up);
+  };
+  token.addEventListener('mousedown', down);
+  token.addEventListener('touchstart', down, {passive:false});
+}
+
+function setupFieldDrop() {
+  const zone = document.getElementById('field-drop');
+  zone.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+  zone.ondrop = async e => {
+    e.preventDefault();
+    if (!draggingId) return;
+    const field = document.getElementById('field');
+    const fr = field.getBoundingClientRect();
+    const x = Math.min(95, Math.max(5, ((e.clientX-fr.left)/fr.width)*100));
+    const y = Math.min(97, Math.max(3, ((e.clientY-fr.top)/fr.height)*100));
+    draggingId = null;
+    await loadAll();
+  };
+}
+
+async function saveFieldLayout() {
+  showLoading(true);
+  try {
+    const active = lineup.filter(l => l.active);
+    await Promise.all(active.map(lu =>
+      db.patch('lineup', { pos_x: lu.pos_x, pos_y: lu.pos_y, updated_at: new Date().toISOString() }, { player_id: `eq.${lu.player_id}` })
+    ));
+    toast('Alineación guardada ✓');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function resetPositions() {
+  const spread = [{x:50,y:8},{x:25,y:22},{x:50,y:22},{x:75,y:22},{x:18,y:38},{x:50,y:38},{x:82,y:38},{x:18,y:55},{x:50,y:55},{x:82,y:55},{x:30,y:72},{x:70,y:72},{x:50,y:80}];
+  showLoading(true);
+  try {
+    const active = lineup.filter(l => l.active);
+    await Promise.all(active.map((lu, i) => {
+      const pos = spread[i] || {x:50, y:30+i*5};
+      return db.patch('lineup', { pos_x: pos.x, pos_y: pos.y, updated_at: new Date().toISOString() }, { player_id: `eq.${lu.player_id}` });
+    }));
+    await loadAll();
+    toast('Posiciones reseteadas');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function activateAll() {
+  showLoading(true);
+  try {
+    await Promise.all(players.map(p => {
+      const lu = getLineup(p.id);
+      if (lu) return db.patch('lineup', { active: true, updated_at: new Date().toISOString() }, { player_id: `eq.${p.id}` });
+      return db.post('lineup', { player_id: p.id, active: true, pos_x: 50, pos_y: 50, team: 'none' });
+    }));
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function deactivateAll() {
+  showLoading(true);
+  try {
+    await db.patch('lineup', { active: false, updated_at: new Date().toISOString() }, { active: 'eq.true' });
+    await loadAll();
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+// ════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════
+async function renderPending() {
+  const list = document.getElementById('pending-list');
+  try {
+    const pending = await db.get('profiles', { approved: 'eq.false', select: '*', order: 'created_at.asc' }) || [];
+    if (!pending.length) { list.innerHTML = '<div class="empty-state">Sin solicitudes pendientes ✓</div>'; return; }
+    list.innerHTML = pending.map(p => `
+      <div class="player-approval-row">
+        <div class="p-avatar" style="background:${POS_COLORS[p.position]||'#888'};width:38px;height:38px;flex-shrink:0">
+          ${p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}">` : getInitials(p.name)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700">${p.name}${p.nick?' "'+p.nick+'"':''}</div>
+          <div style="font-size:11px;color:var(--text3)">${p.email} · ${p.position||'Sin posición'}</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="approvePlayer('${p.id}')">✓ Aprobar</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectPlayer('${p.id}')">✕</button>
+      </div>
+    `).join('');
+  } catch(e) { list.innerHTML = '<div class="empty-state">Error cargando solicitudes</div>'; }
+}
+
+async function approvePlayer(id) {
+  showLoading(true);
+  try {
+    await db.patch('profiles', { approved: true }, { id: `eq.${id}` });
+    await loadAll();
+    toast('Jugador aprobado ✓');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+async function rejectPlayer(id) {
+  if (!confirm('¿Rechazar y eliminar esta solicitud?')) return;
+  showLoading(true);
+  try {
+    await db.delete('profiles', { id: `eq.${id}` });
+    renderPending();
+    toast('Solicitud rechazada');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+function changeAdminPass() {
+  const np = document.getElementById('new-apass').value;
+  if (np.length < 4) { toast('Mínimo 4 caracteres'); return; }
+  adminPass = np;
+  localStorage.setItem(ADMIN_PASS_KEY, np);
+  toast('Clave actualizada ✓');
+  document.getElementById('new-apass').value = '';
+}
+
+async function clearAllData() {
+  if (!confirm('¿Borrar TODOS los datos? No se puede deshacer.')) return;
+  showLoading(true);
+  try {
+    await db.delete('payments', { id: 'neq.00000000-0000-0000-0000-000000000000' });
+    await db.delete('lineup', { id: 'neq.00000000-0000-0000-0000-000000000000' });
+    await db.delete('profiles', { id: 'neq.00000000-0000-0000-0000-000000000000' });
+    await loadAll();
+    toast('Datos eliminados');
+  } catch(e) { toast('Error: ' + e.message); }
+  showLoading(false);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      document.getElementById('auth-screen').classList.add('visible');
+    }, 400);
+  }, 1400);
+});
+</script>
+</body>
+</html>
