@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jabalí FC</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --green:#1a7a3c;--green-dark:#0f5228;--green-light:#e8f5ed;--green-mid:#2d9e54;
+  --gold:#c9a84c;--gold-light:#f5edda;--red:#c0392b;--red-light:#fdf0ee;
+  --blue:#1a5fa8;--blue-light:#e8f0fb;--purple:#6c3fcf;--purple-light:#f0ebff;
+  --orange:#e67e22;--orange-light:#fef0e6;
+  --bg:#f4f6f3;--bg2:#fff;--text:#1a1f1c;--text2:#4a5549;--text3:#8a9988;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--radius:10px;--radius-lg:16px;
+  --color-acento: #8e2de2;
+  --color-acento-hover: #4a00e0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding-bottom:60px}
+header{background:var(--bg2);padding:14px 16px;display:flex;align-items:center;justify-content:between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo-container{display:flex;align-items:center;gap:8px}
+.logo-img{width:32px;height:32px;background:var(--green);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px}
+.logo-txt{font-weight:700;font-size:18px;letter-spacing:-0.5px}
+.nav-tabs{background:var(--bg2);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;height:56px;display:flex;z-index:100}
+.tab-btn{flex:1;background:none;border:none;color:var(--text3);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;gap:2px;cursor:pointer}
+.tab-btn i{font-size:18px}
+.tab-btn.active{color:var(--green);font-weight:600}
+.view{display:none;padding:16px;max-width:800px;margin:0 auto}
+.view.active{display:block}
+.card{background:var(--bg2);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;border:1px solid var(--border)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:between}
+.player-row{display:flex;align-items:center;justify-content:between;padding:10px 0;border-bottom:1px solid var(--border)}
+.player-row:last-child{border-bottom:none}
+.p-info{display:flex;align-items:center;gap:12px}
+.p-av{width:40px;height:40px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:bold;position:relative}
+.p-name{font-weight:600;font-size:14px}
+.p-meta{font-size:12px;color:var(--text3)}
+.p-actions{display:flex;gap:6px}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:6px;border:none;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:4px;background:#f0f2f0;color:var(--text)}
+.btn-sm:hover{background:#e1e5e2}
+.btn-sm.primary{background:var(--green);color:#fff}
+.btn-sm.primary:hover{background:var(--green-dark)}
+
+/* --- ESTILOS COMPLEMENTARIOS PARA EL MODAL DEL EDITOR DE CARTAS --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(6px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: #16181f;
+    color: #ffffff;
+    padding: 25px;
+    border-radius: 16px;
+    max-width: 850px; width: 92%;
+    max-height: 90vh; overflow-y: auto;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+.close-modal-btn {
+    position: absolute;
+    top: 15px; right: 20px;
+    font-size: 30px; cursor: pointer; color: #8f9cae;
+    transition: color 0.2s;
+}
+.close-modal-btn:hover { color: #fff; }
+.card-editor-container {
+    display: flex; gap: 30px; flex-wrap: wrap; margin-top: 15px;
+}
+.card-preview-wrapper {
+    flex: 1; min-width: 270px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
+}
+.editor-form {
+    flex: 1.4; min-width: 320px; text-align: left;
+}
+.editor-form h3 {
+    font-size: 0.95rem; color: #8f9cae; margin: 20px 0 10px 0;
+    text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;
+}
+.editor-form h3:first-of-type { margin-top: 0; }
+.form-row { display: flex; gap: 12px; }
+.form-group { display: flex; flex-direction: column; margin-bottom: 14px; width: 100%; }
+.form-group label { font-size: 11px; color: #8f9cae; margin-bottom: 5px; text-transform: uppercase; }
+.form-group input, .form-group select {
+    background: #1e222b; border: 1px solid rgba(255,255,255,0.1); padding: 10px; color: white; border-radius: 6px; outline: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--color-acento); }
+.file-upload-box {
+    border: 1px dashed rgba(255,255,255,0.1); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; background: #1e222b;
+}
+.file-upload-box button {
+    background: rgba(255,255,255,0.1); border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;
+}
+.file-upload-box button:hover { background: var(--color-acento); }
+.sliders-list { display: flex; flex-direction: column; gap: 8px; }
+.slider-item { display: flex; align-items: center; gap: 12px; margin-bottom: 5px; }
+.slider-item label { width: 110px; font-size: 13px; color: #ffffff; text-align: left; }
+.slider-item input[type=range] { flex: 1; accent-color: var(--color-acento); cursor: pointer; }
+.slider-item span { width: 80px; text-align: right; font-size: 13px; font-weight: bold; color: #8f9cae; }
+
+/* --- DISEÑO DE LA CARTA --- */
+#futbol-card {
+    width: 250px; height: 350px;
+    border-radius: 18px; position: relative; padding: 18px; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; color: white;
+    font-family: 'Arial Black', Impact, sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    transition: all 0.3s ease; overflow: hidden;
+}
+.tier-jabali   { background: linear-gradient(135deg, #3a3d40, #181a1b); border: 2px solid #555; }
+.tier-bronce   { background: linear-gradient(135deg, #8a4f2a, #361909); border: 2px solid #a05a2c; }
+.tier-plata    { background: linear-gradient(135deg, #a1a8ad, #43484c); border: 2px solid #bcc6cc; }
+.tier-oro      { background: linear-gradient(135deg, #b89726, #544102); border: 2px solid #d4af37; }
+.tier-especial { 
+    background: linear-gradient(135deg, #500df2, #8113e6); border: 2px solid #a146ff;
+    box-shadow: 0 0 25px rgba(142, 45, 226, 0.6), inset 0 0 15px rgba(255,255,255,0.2);
+}
+.card-header-row { width: 100%; display: flex; justify-content: space-between; align-items: baseline; }
+.card-ovr { font-size: 44px; font-weight: 900; line-height: 1; letter-spacing: -1px; }
+.card-pos { font-size: 13px; background: rgba(0,0,0,0.4); padding: 2px 7px; border-radius: 5px; font-family: sans-serif; font-weight: bold; }
+.card-avatar {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 2px dashed rgba(255,255,255,0.2);
+    margin: 10px 0; display: flex; align-items: center; justify-content: center;
+}
+.avatar-placeholder { font-size: 36px; color: rgba(255,255,255,0.3); }
+.card-name { font-size: 16px; letter-spacing: 0.5px; margin-bottom: 12px; text-align: center; text-shadow: 1px 2px 4px rgba(0,0,0,0.6); }
+.card-mini-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    width: 100%; text-align: center; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 10px;
+    backdrop-filter: blur(2px); font-family: sans-serif;
+}
+.card-mini-stats div { display: flex; flex-direction: column; }
+.card-mini-stats span { font-size: 13px; font-weight: bold; }
+.card-mini-stats small { font-size: 8px; color: #b3b3b3; text-transform: uppercase; }
+.tier-badge-container { margin: 12px 0 4px 0; text-align: center; font-size: 12px; color: #8f9cae; }
+.tier-badge-container strong { color: #ffffff; margin-left: 4px; }
+.btn-save-img {
+    margin-top: 10px; width: 100%; padding: 11px; background: var(--color-acento); border: none; 
+    color: white; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s;
+}
+.btn-save-img:hover { background: var(--color-acento-hover); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-container">
+    <div class="logo-img">🐗</div>
+    <div class="logo-txt">Jabalí FC</div>
+  </div>
+</header>
+
+<div id="v-players" class="view active">
+  <div class="card">
+    <div class="card-title">Plantilla del Club</div>
+    <div id="players-list-container">
+       </div>
+  </div>
+</div>
+
+<nav class="nav-tabs">
+  <button class="tab-btn active" onclick="switchView('v-players', this)"><i class="fa-solid fa-users"></i>Equipo</button>
+</nav>
+
+<div id="cardEditorModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal-btn" onclick="cerrarEditor()">&times;</span>
+        
+        <div class="card-editor-container">
+            <div class="card-preview-wrapper">
+                <div id="futbol-card" class="tier-bronce">
+                    <div class="card-header-row">
+                        <span id="cardOvrDisplay" class="card-ovr">55</span>
+                        <span class="card-pos" id="cardPosDisplay">POR</span>
+                    </div>
+                    <div class="card-avatar" id="cardAvatar">
+                        <span class="avatar-placeholder" id="cardPlaceholderLetter">J</span>
+                    </div>
+                    <div class="card-name" id="cardNameDisplay">JUGADOR</div>
+                    
+                    <div class="card-mini-stats">
+                        <div><span id="mini-vel">26</span><small>VEL</small></div>
+                        <div><span id="mini-tec">26</span><small>TEC</small></div>
+                        <div><span id="mini-fue">51</span><small>FUE</small></div>
+                        <div><span id="mini-esp">100</span><small>ESP</small></div>
+                        <div><span id="mini-sta">75</span><small>STA</small></div>
+                        <div><span id="mini-alt">51</span><small>ALT</small></div>
+                    </div>
+                </div>
+                <div class="tier-badge-container">
+                    <span>TIER:</span><strong id="cardTierDisplay">Bronce</strong>
+                </div>
+                <button id="btnDownloadCard" class="btn-save-img" onclick="descargarCartaPNG()">Guardar carta como imagen</button>
+                <button id="btnSaveDB" class="btn-save-img" style="background:#1a7a3c; margin-top:5px;" onclick="guardarCartaEnSupabase()">Guardar en Base de Datos</button>
+            </div>
+
+            <div class="editor-form">
+                <h3>Jugador</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="inputNombre" oninput="actualizarCarta()">
+                    </div>
+                    <div class="form-group" style="width: 90px;">
+                        <label>Número (#)</label>
+                        <input type="number" id="inputNumero" oninput="actualizarCarta()">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Posición</label>
+                    <select id="selectPosicion" onchange="actualizarCarta()">
+                        <option value="POR">Portero</option>
+                        <option value="DEF">Defensa</option>
+                        <option value="MC">Mediocampista</option>
+                        <option value="DEL">Delantero</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto de Perfil</label>
+                    <div class="file-upload-box">
+                        <span>Tu foto aparecerá directamente en la carta</span>
+                        <input type="file" id="inputFoto" accept="image/*" style="display:none" onchange="procesarFoto(this)">
+                        <button type="button" onclick="document.getElementById('inputFoto').click()">Subir foto</button>
+                    </div>
+                </div>
+
+                <h3>Estadísticas</h3>
+                <div class="sliders-list">
+                    <div class="slider-item">
+                        <label>⚡ Velocidad</label>
+                        <input type="range" id="rangeVelocidad" min="1" max="99" oninput="actualizarStat('Velocidad', this.value)">
+                        <span id="valVelocidad">26</span>
+                    </div>
+                    <div class="slider-item">
+                        <label>🎯 Técnica</label>
+                        <input type="range" id="rangeTecnica" min="1" max="99" oninput="actualizarStat('Tecnica', this.value)">
+                        <span id="valTecnica">26</span>
+                    </div>
+                    <div class="slider-item">
+                        <label>💪 Fuerza</label>
+                        <input type="range" id="rangeFuerza" min="1" max="99" oninput="actualizarStat('Fuerza', this.value)">
+                        <span id="valFuerza">51</span>
+                    </div>
+                    <div class="slider-item">
+                        <label>🔥 Espíritu</label>
+                        <input type="range" id="rangeEspiritu" min="1" max="99" oninput="actualizarStat('Espiritu', this.value)">
+                        <span id="valEspiritu">100</span>
+                    </div>
+                    <div class="slider-item">
+                        <label>🫁 Stamina</label>
+                        <input type="range" id="rangeStamina" min="1" max="99" oninput="actualizarStat('Stamina', this.value)">
+                        <span id="valStamina">75</span>
+                    </div>
+                    <div class="slider-item">
+                        <label>📏 Altura</label>
+                        <input type="range" id="rangeAltura" min="1" max="99" oninput="actualizarStat('Altura', this.value)">
+                        <span id="valAltura">51</span>
+                    </div>
+                </div>
+
+                <h3>MVPs Ganados</h3>
+                <div class="slider-item">
+                    <input type="range" id="rangeMvps" min="0" max="10" step="1" oninput="actualizarMvps(this.value)">
+                    <span id="valMvps">2=Bronce</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables simuladas del flujo original
+let players = [];
+let jugadorIdActualGlobal = null;
+
+// Mock de inicialización (Reemplaza con tu cliente real de base de datos)
+async function loadAll() {
+    // Aquí es donde tu app hace el select a Supabase/API rest.
+    // Ejemplo de simulación:
+    players = [
+        {id: "1", name: "Jorge Navarro", numero: 10, posicion: "MC", velocidad: 75, tecnica: 80, fuerza: 70, espiritu: 90, stamina: 85, altura: 73, mvps: 6},
+        {id: "2", name: "KokySquall", numero: 13, posicion: "POR", velocidad: 26, tecnica: 26, fuerza: 51, espiritu: 100, stamina: 75, altura: 51, mvps: 8}
+    ];
+    renderPlayersList();
+}
+
+function renderPlayersList() {
+    const container = document.getElementById('players-list-container');
+    if(!container) return;
+    container.innerHTML = '';
+
+    players.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'player-row';
+        div.innerHTML = `
+            <div class="p-info">
+                <div class="p-av">⚽</div>
+                <div>
+                    <div class="p-name">${p.name}</div>
+                    <div class="p-meta">#${p.numero || 10} | ${p.posicion || 'MC'}</div>
+                </div>
+            </div>
+            <div class="p-actions">
+                <button class="btn-sm primary" onclick='abrirEditorJugador(${JSON.stringify(p)})'>
+                    <i class="fa-solid fa-id-card"></i> Diseñar Carta
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function switchView(viewId, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    btn.classList.add('active');
+}
+
+// =================================═══════════════════════
+// MOTOR DEL EDITOR DE CARTAS (EFOOTBALL STYLE)
+// =================================═══════════════════════
+
+function abrirEditorJugador(p) {
+    if (!p) return;
+    
+    jugadorIdActualGlobal = p.id;
+
+    document.getElementById('inputNombre').value = p.name || 'Jugador';
+    document.getElementById('inputNumero').value = p.numero || 10;
+    document.getElementById('selectPosicion').value = p.posicion || 'MC';
+
+    document.getElementById('rangeVelocidad').value = p.velocidad || 50;
+    document.getElementById('rangeTecnica').value = p.tecnica || 50;
+    document.getElementById('rangeFuerza').value = p.fuerza || 50;
+    document.getElementById('rangeEspiritu').value = p.espiritu || 50;
+    document.getElementById('rangeStamina').value = p.stamina || 50;
+    document.getElementById('rangeAltura').value = p.altura || 50;
+    document.getElementById('rangeMvps').value = p.mvps || 0;
+
+    refrescarTextosSliders();
+    actualizarCarta();
+
+    document.getElementById('cardEditorModal').style.display = 'flex';
+}
+
+function refrescarTextosSliders() {
+    ['Velocidad', 'Tecnica', 'Fuerza', 'Espiritu', 'Stamina', 'Altura'].forEach(stat => {
+        const val = document.getElementById(`range${stat}`).value;
+        document.getElementById(`val${stat}`).textContent = val;
+    });
+    actualizarMvps(document.getElementById('rangeMvps').value);
+}
+
+function actualizarStat(statName, valor) {
+    document.getElementById(`val${statName}`).textContent = valor;
+    actualizarCarta();
+}
+
+function actualizarMvps(valor) {
+    let textoTier = "0=Jabalí";
+    if (valor >= 2 && valor < 4) textoTier = "2=Bronce";
+    if (valor >= 4 && valor < 6) textoTier = "4=Plata";
+    if (valor >= 6 && valor < 8) textoTier = "6=Oro";
+    if (valor >= 8) textoTier = "8+=Especial";
+    
+    document.getElementById('valMvps').textContent = textoTier;
+    actualizarCarta();
+}
+
+function actualizarCarta() {
+    const nombre = document.getElementById('inputNombre').value.trim() || 'JUGADOR';
+    const posicion = document.getElementById('selectPosicion').value;
+    
+    const vel = parseInt(document.getElementById('rangeVelocidad').value);
+    const tec = parseInt(document.getElementById('rangeTecnica').value);
+    const fue = parseInt(document.getElementById('rangeFuerza').value);
+    const esp = parseInt(document.getElementById('rangeEspiritu').value);
+    const sta = parseInt(document.getElementById('rangeStamina').value);
+    const alt = parseInt(document.getElementById('rangeAltura').value);
+    const mvps = parseInt(document.getElementById('rangeMvps').value);
+
+    const ovr = Math.round((vel + tec + fue + esp + sta + alt) / 6);
+
+    document.getElementById('cardNameDisplay').textContent = nombre.toUpperCase();
+    document.getElementById('cardPosDisplay').textContent = posicion;
+    document.getElementById('cardOvrDisplay').textContent = ovr;
+    document.getElementById('cardPlaceholderLetter').textContent = nombre.charAt(0).toUpperCase();
+
+    document.getElementById('mini-vel').textContent = vel;
+    document.getElementById('mini-tec').textContent = tec;
+    document.getElementById('mini-fue').textContent = fue;
+    document.getElementById('mini-esp').textContent = esp;
+    document.getElementById('mini-sta').textContent = sta;
+    document.getElementById('mini-alt').textContent = alt;
+
+    const carta = document.getElementById('futbol-card');
+    const tierDisplay = document.getElementById('cardTierDisplay');
+    carta.className = '';
+
+    if (mvps >= 8) {
+        carta.classList.add('tier-especial');
+        tierDisplay.innerHTML = "Especial ✨";
+    } else if (mvps >= 6) {
+        carta.classList.add('tier-oro');
+        tierDisplay.textContent = "Oro 🪙";
+    } else if (mvps >= 4) {
+        carta.classList.add('tier-plata');
+        tierDisplay.textContent = "Plata 🥈";
+    } else if (mvps >= 2) {
+        carta.classList.add('tier-bronce');
+        tierDisplay.textContent = "Bronce 🥉";
+    } else {
+        carta.classList.add('tier-jabali');
+        tierDisplay.textContent = "Jabalí 🐗";
+    }
+}
+
+function procesarFoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const avatarDiv = document.getElementById('cardAvatar');
+            avatarDiv.innerHTML = ''; 
+            avatarDiv.style.backgroundImage = `url('${e.target.result}')`;
+            avatarDiv.style.backgroundSize = 'cover';
+            avatarDiv.style.backgroundPosition = 'center';
+            avatarDiv.style.border = '2px solid rgba(255,255,255,0.6)';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function cerrarEditor() {
+    document.getElementById('cardEditorModal').style.display = 'none';
+}
+
+function descargarCartaPNG() {
+    const contenedorCarta = document.getElementById('futbol-card');
+    const nombreArchivo = document.getElementById('inputNombre').value.trim() || 'Carta';
+    
+    html2canvas(contenedorCarta, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: null
+    }).then(canvas => {
+        const enlace = document.createElement('a');
+        enlace.download = `Carta_${nombreArchivo.replace(/\s+/g, '_')}.png`;
+        enlace.href = canvas.toDataURL('image/png');
+        enlace.click();
+    });
+}
+
+// 2. CONEXIÓN A TU BACKEND (SUPABASE)
+async function guardarCartaEnSupabase() {
+    if (!jugadorIdActualGlobal) return;
+    
+    const payload = {
+        name: document.getElementById('inputNombre').value,
+        numero: parseInt(document.getElementById('inputNumero').value),
+        posicion: document.getElementById('selectPosicion').value,
+        velocidad: parseInt(document.getElementById('rangeVelocidad').value),
+        tecnica: parseInt(document.getElementById('rangeTecnica').value),
+        fuerza: parseInt(document.getElementById('rangeFuerza').value),
+        espiritu: parseInt(document.getElementById('rangeEspiritu').value),
+        stamina: parseInt(document.getElementById('rangeStamina').value),
+        altura: parseInt(document.getElementById('rangeAltura').value),
+        mvps: parseInt(document.getElementById('rangeMvps').value)
+    };
+
+    try {
+        // En tu app usas 'db.patch', así que lo estructuramos igual:
+        await db.patch('profiles', payload, { id: `eq.${jugadorIdActualGlobal}` });
+        alert("¡Estadísticas de la carta guardadas en Supabase! ✓");
+        await loadAll();
+        cerrarEditor();
+    } catch(e) {
+        alert("Error al guardar: " + e.message);
+    }
+}
+
+// Inicialización de la app al cargar
+window.onload = loadAll;
+</script>
+</body>
+</html>
